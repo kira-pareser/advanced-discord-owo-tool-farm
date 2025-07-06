@@ -1,0 +1,12 @@
+{
+    "commands": {
+        "ping": {
+            "description": "Check the bot's latency",
+            "pong": "Latency: **%s**ms (WebSocket: **%s**ms)"
+        },
+        "uptime": {
+            "description": "Check how long the bot has been running",
+            "response": "Uptime: **%s**"
+        }
+    }
+}

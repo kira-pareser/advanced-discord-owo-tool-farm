@@ -1,39 +1,61 @@
+import winston from "winston"
 import chalk from "chalk"
-import { createLogger, format, transports, Logger, LogEntry } from "winston"
 
-class CustomLogger {
-    public logger: Logger
-    private static instance: CustomLogger
+import fs from "node:fs"
+import path from "node:path"
+import util from "node:util"
+
+export type LogLevel = "alert" | "error" | "runtime" | "warn" | "info" | "data" | "sent" | "debug";
+
+const LOG_DIR = "logs";
+const LOG_FILE = path.join(LOG_DIR, "console.log");
+
+if (!fs.existsSync(LOG_DIR)) {
+    fs.mkdirSync(LOG_DIR, { recursive: true });
+}
+
+const { combine, printf, timestamp, errors, uncolorize } = winston.format;
+
+const levelFormats: Record<LogLevel, string> = {
+    alert: chalk.redBright.bold("[ALERT]"),
+    error: chalk.redBright.bold("[ERROR]"),
+    runtime: chalk.blue.bold("[RUNTIME]"),
+    warn: chalk.yellowBright.bold("[WARNING]"),
+    info: chalk.cyanBright.bold("[INFO]"),
+    data: chalk.blackBright.bold("[DATA]"),
+    sent: chalk.greenBright.bold("[SENT]"),
+    debug: chalk.magentaBright.bold("[DEBUG]"),
+}
+
+const consoleFormat = printf(({ level, message, timestamp, stack }) => {
+    const formattedLevel = levelFormats[level as LogLevel] || chalk.whiteBright.bold(`[${level.toUpperCase()}]`);
+    const formattedTimestamp = chalk.bgYellowBright.whiteBright(timestamp);
+
+    if(stack) {
+        return util.format(
+            "%s %s %s\n%s",
+            formattedTimestamp,
+            formattedLevel,
+            message,
+            chalk.redBright("%O"), // Pretty-print stack/object
+            stack
+        )
+    }
+    return util.format(
+        "%s %s %s",
+        formattedTimestamp,
+        formattedLevel,
+        level === "debug" ? chalk.gray(message) : message
+    );
+});
+
+class WinstonLogger {
+    private logger: winston.Logger;
+    private static instance: WinstonLogger;
 
     constructor() {
-        const { combine, printf, timestamp, errors, uncolorize } = format
-
-        const levelFormats: { [key: string]: string } = {
-            alert: chalk.red("[ALERT]"),
-            error: chalk.redBright("[ERROR]"),
-            runtime: chalk.blue("[RUNTIME]"),
-            warn: chalk.yellowBright("[WARNING]"),
-            info: chalk.cyanBright("[INFO]"),
-            sent: chalk.greenBright("[SENT]"),
-            debug: chalk.blackBright("[DEBUG]"),
-        };
-
-        const consoleFormat = printf(({ level, message, timestamp, stack }: LogEntry & { stack?: string }) => {
-            const formattedTimestamp = chalk.bgYellow.black(timestamp)
-            const levelLabel = levelFormats[level] || chalk.magenta(`[${level.toUpperCase()}]`)
-            return stack
-                ? `${formattedTimestamp} ${levelLabel} ${message}\n${chalk.redBright(stack)}`
-                : `${formattedTimestamp} ${levelLabel} ${level == "debug" ? chalk.blackBright(message) : message}`;
-        })
-
-        const fileFormat = printf(({ level, message, timestamp, stack }) => {
-            return stack 
-            ? `[${timestamp}] [${level.toUpperCase()}] ${message}\n  Stack trace:\n    ${stack}`
-            : `[${timestamp}] [${level.toUpperCase()}] ${message}`
-        })
-
-        this.logger = createLogger({
-            level: "sent",
+        this.logger = winston.createLogger({
+            level: "debug",
             levels: {
                 alert: 0,
                 error: 1,
@@ -42,70 +64,77 @@ class CustomLogger {
                 info: 4,
                 data: 5,
                 sent: 6,
-                debug: 7
+                debug: 7,
             },
             format: combine(
                 timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-                errors({ stack: true })
+                errors({ stack: true }),
             ),
             transports: [
-                new transports.Console({
-                    format: consoleFormat,
-                }),
-                new transports.File({
+                new winston.transports.Console(),
+                new winston.transports.File({
+                    filename: LOG_FILE,
                     level: "debug",
-                    filename: "logs/console.log",
-                    maxsize: 1024 * 1024 * 10,
+                    maxsize: 5 * 1024 * 1024, // 5 MB
                     maxFiles: 5,
-                    zippedArchive: true,
-                    format: combine(uncolorize(), fileFormat)
-                })
+                    format: combine(
+                        uncolorize(),
+                        consoleFormat
+                    ),
+                }),
             ],
             exitOnError: false,
+            handleExceptions: true,
             handleRejections: true,
-            handleExceptions: true
-        })
-
+        });
     }
 
-    public static getInstance() {
-        if (!CustomLogger.instance) {
-            CustomLogger.instance = new CustomLogger()
+    public static getInstance(): WinstonLogger {
+        if (!WinstonLogger.instance) {
+            WinstonLogger.instance = new WinstonLogger();
         }
-        return CustomLogger.instance
+        return WinstonLogger.instance;
     }
 
-    public log(level: string, message: string | Error) {
+    public log(level: LogLevel, message: string | Error) {
         if (message instanceof Error) {
-            this.logger.log(level, message.message, { stack: message.stack });
+            this.logger.log(level, message.message, { stack: message.stack});
         } else {
             this.logger.log(level, message);
         }
     }
 
-    public alert(message: string) {
-        this.log("alert", message)
+    public alert(message: string | Error) {
+        this.log("alert", message);
     }
 
     public error(message: string | Error) {
-        this.log("error", message)
+        this.log("error", message);
     }
 
-    public warn(message: string) {
-        this.log("warn", message)
+    public runtime(message: string | Error) {
+        this.log("runtime", message);
     }
 
-    public info(message: string) {
-        this.log("info", message)
+    public warn(message: string | Error) {
+        this.log("warn", message);
     }
 
-    public sent(message: string) {
-        this.log("sent", message)
+    public info(message: string | Error) {
+        this.log("info", message);
     }
 
-    public debug(message: string) {
-        this.log("debug", message)
+    public data(message: string | Error) {
+        this.log("data", message);
+    }
+
+    public sent(message: string | Error) {
+        this.log("sent", message);
+    }
+
+    public debug(message: string | Error) {
+        this.log("debug", message);
     }
 }
 
-export const logger = CustomLogger.getInstance()
+export const logger = WinstonLogger.getInstance();

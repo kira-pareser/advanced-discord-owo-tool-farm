@@ -1,0 +1,12 @@
+{
+    "commands": {
+        "ping": {
+            "description": "Kiểm tra độ trễ của bot",
+            "pong": "Độ trễ: **%s**ms (WebSocket: **%s**ms)"
+        },
+        "uptime": {
+            "description": "Kiểm tra thời gian bot đã chạy",
+            "response": "Thời gian hoạt động: **%s**"
+        }
+    }
+}

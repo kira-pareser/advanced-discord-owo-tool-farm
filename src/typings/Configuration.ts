@@ -1,0 +1,31 @@
+export interface Configuration {
+    username?: string;
+    token: string;
+    guildID?: string;
+    channelID: string[];
+    wayNotify: Array<"webhook" | "dms" | "call" | "music" | "popup">
+    webhookURL?: string;
+    adminID?: string;
+    musicPath?: string;
+    whenNotify: "both" | "failed" | "success";
+    prefix?: string;
+    captchaAPI?: "2captcha";
+    apiKey?: string;
+    autoHuntbot: boolean;
+    autoTrait?: "efficiency" | "duration" | "cost" | "gain" | "experience" | "radar";
+    useAdosAPI?: boolean;
+    autoPray: string[];
+    autoGem: 0 | -1 | 1;
+    autoCrate?: boolean;
+    autoFabledCrate?: boolean;
+    autoQuote: Array<"owo" | "quote">
+    autoDaily: boolean;
+    autoCookie: boolean;
+    autoClover: boolean;
+    autoSell: boolean;
+    autoOther: Array<"run" | "pup" | "piku">
+    autoSleep: boolean
+    autoReload: boolean
+    autoResume: boolean
+    showRPC: boolean
+}
