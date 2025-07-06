@@ -23,7 +23,7 @@ export interface Configuration {
     autoCookie: boolean;
     autoClover: boolean;
     autoSell: boolean;
-    autoOther: Array<"run" | "pup" | "piku">
+    autoRPP: Array<"run" | "pup" | "piku">
     autoSleep: boolean
     autoReload: boolean
     autoResume: boolean

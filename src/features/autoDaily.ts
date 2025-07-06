@@ -14,11 +14,10 @@ export default Schematic.registerFeature({
 
         return true;
     },
-    permissions: "SEND_MESSAGES",
-    run: async ({ client, channel }) => {
-        const message = await client.sendMessage("cookie", { channel, typing: 1000 });
-        if (message) {
-            await message.react("🍪");
-        }
+    run: async ({ agent: { prefix, config }, client, channel }) => {
+        client.sendMessage("daily", {
+            channel,
+            prefix,
+        })
     }
 })

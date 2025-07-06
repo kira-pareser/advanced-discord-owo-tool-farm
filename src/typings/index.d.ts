@@ -59,7 +59,7 @@ type HandlerProps = {
 
 interface FeatureFnParams extends BaseParams {
     channel: GuildTextBasedChannel;
-    cooldown: Cooldown
+    // cooldown: Cooldown
 }
 
 type BaseFeatureOptions = {

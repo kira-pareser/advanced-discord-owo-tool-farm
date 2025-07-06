@@ -31,7 +31,7 @@ export default Schematic.registerEvent({
 
     try {
       const params = { ...BaseParams };
-      await command.execute(params); //damn i hate that
+      await command.execute();
     } catch (error) {
       logger.error(`Error executing command "${commandName}":`);
       logger.error(error as Error);

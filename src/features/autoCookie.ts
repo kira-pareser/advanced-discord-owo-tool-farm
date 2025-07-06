@@ -9,17 +9,18 @@ export default Schematic.registerFeature({
     const date = new Date();
     return date.setDate(date.getDate() + 1) - Date.now();
   },
-  condition: async ({ config , cooldown }) => {
+  condition: async ({ config }) => {
     if (!config.autoCookie) return false;
-    if(cooldown.onCooldown) return false;
+
     return true;
   },
   run: async ({ agent, client, channel, config }) => { 
 
-      await client.sendMessage("cookie", {
+      await client.sendMessage(`cookie ${config.adminID}`, {
         channel,
         prefix: agent.prefix,
       });
- 
+
+      config.autoCookie = false; // Disable autoCookie after sending the message
   },
 });
