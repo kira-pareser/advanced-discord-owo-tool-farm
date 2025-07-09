@@ -31,7 +31,7 @@ const consoleFormat = printf(({ level, message, timestamp, stack }) => {
     const formattedLevel = levelFormats[level as LogLevel] || chalk.whiteBright.bold(`[${level.toUpperCase()}]`);
     const formattedTimestamp = chalk.bgYellowBright.whiteBright(timestamp);
 
-    if(stack) {
+    if (stack) {
         return util.format(
             "%s %s %s\n%s",
             formattedTimestamp,
@@ -98,7 +98,7 @@ class WinstonLogger {
 
     public log(level: LogLevel, message: string | Error) {
         if (message instanceof Error) {
-            this.logger.log(level, message.message, { stack: message.stack});
+            this.logger.log(level, message.message, { stack: message.stack });
         } else {
             this.logger.log(level, message);
         }

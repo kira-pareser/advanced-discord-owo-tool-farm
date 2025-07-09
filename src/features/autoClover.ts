@@ -9,17 +9,19 @@ export default Schematic.registerFeature({
         const date = new Date();
         return date.setDate(date.getDate() + 1) - Date.now();
     },
-    condition: async ({ config }) => {
-        if (!config.autoClover || !config.adminID) return false;
+    condition: async ({ agent: { config } }) => {
+        if (!config.autoClover) return false;
+        if (!config.adminID) {
+            console.warn("autoClover feature requires adminID to be set in config.");
+            config.autoClover = false; // Disable autoClover if adminID is not set
+            return false;
+        }
 
         return true;
     },
-    run: async ({ agent, client, channel, config }) => {
-        await client.sendMessage(`clover ${config.adminID}`, {
-            channel,
-            prefix: agent.prefix,
-        });
+    run: async ({ agent }) => {
+        await agent.send(`clover ${agent.config.adminID}`);
 
-        config.autoClover = false; // Disable autoClover after sending the message
+        agent.config.autoClover = false; // Disable autoClover after sending the message
     },
 });

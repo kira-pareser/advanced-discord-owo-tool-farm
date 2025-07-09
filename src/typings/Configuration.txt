@@ -7,7 +7,6 @@ export interface Configuration {
     webhookURL?: string;
     adminID?: string;
     musicPath?: string;
-    whenNotify: "both" | "failed" | "success";
     prefix?: string;
     captchaAPI?: "2captcha";
     apiKey?: string;

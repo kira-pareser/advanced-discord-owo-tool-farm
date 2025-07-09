@@ -1,8 +1,7 @@
 import { BaseAgent } from "@/structure/classes/BaseAgent.ts";
 import { ExtendedClient } from "@/structure/classes/ExtendedClient.ts";
 import type { I18nPath, Locale, Translationfn } from "@/utils/locales.ts";
-import type { Client, ClientEvents, Message, PermissionResolvable } from "discord.js-selfbot-v13";
-import { Configuration } from "./Configuration.ts";
+import type { Client, ClientEvents, Message, PermissionResolvable, TextBasedChannel } from "discord.js-selfbot-v13";
 
 export type MaybePromise<T> = T | Promise<T>;
 
@@ -19,8 +18,7 @@ type EventOptions<T extends keyof ClientEvents = keyof ClientEvents> = {
 
 interface BaseParams {
     agent: BaseAgent;
-    client: ExtendedClient<true>;
-    config: Configuration;
+    // client: ExtendedClient<true>;
 
     t: Translationfn;
     locale: Locale;
@@ -58,7 +56,7 @@ type HandlerProps = {
 }
 
 interface FeatureFnParams extends BaseParams {
-    channel: GuildTextBasedChannel;
+    // channel: GuildTextBasedChannel;
     // cooldown: Cooldown
 }
 
@@ -73,4 +71,17 @@ export interface FeatureProps {
     condition: (args: FeatureFnParams) => MaybePromise<boolean>;
     permissions?: PermissionResolvable;
     run: (args: FeatureFnParams) => MaybePromise<unknown>;
+}
+
+interface SendOptions {
+    channel: TextBasedChannel
+    prefix?: string
+    typing?: number
+}
+
+interface AwaitResponseOptions {
+    filter: (message: Message) => boolean;
+    trigger: () => MaybePromise<unknown>;
+    time?: number;
+    max?: number;
 }

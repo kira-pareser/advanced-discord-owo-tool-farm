@@ -6,18 +6,17 @@ export default Schematic.registerFeature({
     options: {
         overrideCooldown: true
     },
-    cooldown: () => 1000 * 60 * 60, // 1 hour
-    condition: async ({ client, channel, config }) => {
+    cooldown: () => {
+		const date = new Date();
+		return date.setDate(date.getDate() + 1) - Date.now();
+	},
+    condition: async ({ agent: { config } }) => {
         if (!config.autoCookie) return false;
-        if (channel.type !== "GUILD_TEXT") return false;
-        if (!channel.permissionsFor(client.user)?.has("SEND_MESSAGES")) return false;
 
         return true;
     },
-    run: async ({ agent: { prefix, config }, client, channel }) => {
-        client.sendMessage("daily", {
-            channel,
-            prefix,
-        })
+    run: async ({ agent }) => {
+        agent.send("daily")
+        agent.config.autoDaily = false; // Disable autoDaily after running
     }
 })

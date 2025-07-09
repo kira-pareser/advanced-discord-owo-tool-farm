@@ -73,7 +73,7 @@ export class UpdateFeature {
     private installDependencies = async () => {
         logger.info("Installing dependencies...");
         try {
-            await promisify(exec)("npm install");
+            await promisify(exec)("npm ci");
             logger.info("Dependencies installed successfully.");
         } catch (error) {
             logger.error("Error installing dependencies:");

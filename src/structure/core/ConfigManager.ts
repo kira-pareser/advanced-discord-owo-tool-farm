@@ -1,43 +1,43 @@
-import fs from "node:fs"
-import path from "node:path";
-import os from "node:os";
-
-import type { Configuration } from "../../typings/Configuration.js";
+import { DataManager } from "./DataManager.js";
+import { ConfigSchema, Configuration } from "@/schemas/ConfigSchema.js";
 
 export class ConfigManager {
-    private config: Record<string, Configuration> = {};
+    private dataManager = new DataManager();
+    private configs: Record<string, Configuration> = {};
 
-    constructor(private configFilePath: string = path.join(os.homedir(), "b2ki-ados", "data.json")) {
-        this.loadConfig();
+    constructor() {
+        this.loadAll();
+        // this.loadConfig();
     }
 
-    private loadConfig(): void {
-        if(!fs.existsSync(this.configFilePath)) {
-            fs.mkdirSync(path.dirname(this.configFilePath), { recursive: true });
-            fs.writeFileSync(this.configFilePath, JSON.stringify({}, null, 2), 'utf-8');
-
-            return;
+    private loadAll = () => {
+        const data = this.dataManager.read();
+        for (const key in data) {
+            const result = ConfigSchema.safeParse(data[key]);
+            if (result.success) {
+                this.configs[key] = result.data;
+            }
         }
-
-        const rawData = fs.readFileSync(this.configFilePath, 'utf-8');
-        this.config = JSON.parse(rawData);
     }
 
-    public getAllKeys(): string[] {
-        return Object.keys(this.config);
+    public getAllKeys = (): string[] => {
+        return Object.keys(this.configs);
     }
 
-    public get(key: string): Configuration | undefined {
-        return this.config[key];
+    public get = (key: string): Configuration | undefined => {
+        return this.configs[key];
     }
 
-    public set(key: string, value: any): void {
-        this.config[key] = value;
-        this.saveConfig();
+    public set = (key: string, value: Configuration): void => {
+        const result = ConfigSchema.safeParse(value);
+        if (!result.success) {
+            throw new Error(`Invalid configuration for key "${key}": ${result.error.message}`);
+        }
+        this.configs[key] = result.data;
+        this.saveAll();
     }
 
-    private saveConfig(): void {
-        const data = JSON.stringify(this.config, null, 2);
-        fs.writeFileSync(this.configFilePath, data, 'utf-8');
+    private saveAll = (): void => {
+        this.dataManager.write(this.configs);
     }
 }

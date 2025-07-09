@@ -2,12 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { ConfigManager } from "./ConfigManager.js";
-import { Configuration } from "../../typings/Configuration.js";
-import { BaseAgent } from "./OldBaseAgent.js";
+import { BaseAgent } from "../../../dump/OldBaseAgent.js";
 
 import { input, select, checkbox, Separator, confirm } from "@inquirer/prompts";
 import { Guild } from "discord.js-selfbot-v13";
 import axios from "axios";
+import { Configuration } from "@/schemas/ConfigSchema.js";
 
 export class InquirerUI {
     private configManager = new ConfigManager();
@@ -218,27 +218,27 @@ export class InquirerUI {
         })
     }
 
-    private whenNotify = (cache?: Configuration["whenNotify"]) => {
-        console.clear()
-        return select<Configuration["whenNotify"]>({
-            message: "Select when you want to be notified: ",
-            choices: [
-                {
-                    name: "Both",
-                    value: "both" as Configuration["whenNotify"]
-                },
-                {
-                    name: "Only on failed captcha solving",
-                    value: "failed" as Configuration["whenNotify"]
-                },
-                {
-                    name: "Only on successful captcha solving",
-                    value: "success" as Configuration["whenNotify"]
-                }
-            ],
-            default: cache
-        });
-    }
+    // private whenNotify = (cache?: Configuration["whenNotify"]) => {
+    //     console.clear()
+    //     return select<Configuration["whenNotify"]>({
+    //         message: "Select when you want to be notified: ",
+    //         choices: [
+    //             {
+    //                 name: "Both",
+    //                 value: "both" as Configuration["whenNotify"]
+    //             },
+    //             {
+    //                 name: "Only on failed captcha solving",
+    //                 value: "failed" as Configuration["whenNotify"]
+    //             },
+    //             {
+    //                 name: "Only on successful captcha solving",
+    //                 value: "success" as Configuration["whenNotify"]
+    //             }
+    //         ],
+    //         default: cache
+    //     });
+    // }
 
     private captchaAPI = (cache?: string) => {
         console.clear()

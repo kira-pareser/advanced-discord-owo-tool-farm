@@ -1,12 +1,7 @@
+import { SendOptions } from "@/typings/index.js";
 import { logger } from "@/utils/logger.js";
 import { ranInt } from "@/utils/math.js";
-import { Client, ClientOptions, TextBasedChannel } from "discord.js-selfbot-v13";
-
-interface SendOptions {
-    channel: TextBasedChannel
-    prefix?: string
-    typing?: number
-}
+import { Client, ClientOptions } from "discord.js-selfbot-v13";
 
 export class ExtendedClient<Ready extends boolean = boolean> extends Client<Ready> {
     constructor(options: ClientOptions = {}) {
@@ -19,11 +14,21 @@ export class ExtendedClient<Ready extends boolean = boolean> extends Client<Read
         this.on("error", logger.error);
     }
 
-    public sendMessage = async (message: string, { channel, prefix, typing = ranInt(500, 1000) }: SendOptions) => {
+    public sendMessage = async (
+        message: string,
+        {
+            channel,
+            prefix = "",
+            typing = ranInt(500, 1000)
+        }: SendOptions
+    ) => {
         await channel.sendTyping()
         await this.sleep(typing);
 
-        return channel.send(`${prefix || ""} ${message}`);
+        const command = message.startsWith(prefix) ? message : `${prefix}${message}`;
+
+        channel.send(command);
+        logger.sent(command)
     }
 
     public checkAccount = (token?: string) => {
@@ -31,7 +36,7 @@ export class ExtendedClient<Ready extends boolean = boolean> extends Client<Read
             this.once("ready", resolve);
 
             try {
-                if(token) {
+                if (token) {
                     logger.info("Checking account...");
                     this.login(token)
                 } else {
