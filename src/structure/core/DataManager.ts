@@ -38,6 +38,7 @@ export class DataManager {
     public write = (data: Record<string, unknown>): void => {
         try {
             fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2));
+            logger.info(`File saved to: ${this.filePath}`);
         } catch (error) {
             logger.error("Error writing data file:");
             logger.error(error as Error);

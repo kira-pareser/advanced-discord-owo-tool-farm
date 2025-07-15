@@ -19,16 +19,17 @@ export class ExtendedClient<Ready extends boolean = boolean> extends Client<Read
         {
             channel,
             prefix = "",
-            typing = ranInt(500, 1000)
+            typing = ranInt(500, 1000),
+            skipLogging = false,
         }: SendMessageOptions
     ) => {
         await channel.sendTyping()
         await this.sleep(typing);
 
-        const command = message.startsWith(prefix) ? message : `${prefix}${message}`;
+        const command = message.startsWith(prefix) ? message : `${prefix} ${message}`;
 
         channel.send(command);
-        logger.sent(command)
+        if (!skipLogging) logger.sent(command)
     }
 
     public checkAccount = (token?: string) => {
@@ -37,7 +38,6 @@ export class ExtendedClient<Ready extends boolean = boolean> extends Client<Read
 
             try {
                 if (token) {
-                    logger.info("Checking account...");
                     this.login(token)
                 } else {
                     this.QRLogin()

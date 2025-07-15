@@ -57,12 +57,11 @@ export class InquirerUI {
         }
 
         this.config.autoHuntbot = await this.configPrompter.trueFalse(
-            "This will automatically enable using ADOTF's API if no captcha API provider is set.\n" +
-            + "Toggle Automatically Send/Receive Huntbot",
+            "Toggle Automatically Send/Receive Huntbot",
             this.config.autoHuntbot
         );
 
-        if(this.config.autoHuntbot) {
+        if (this.config.autoHuntbot) {
             this.config.autoTrait = await this.configPrompter.getTrait(this.config.autoTrait);
             this.config.useAdotfAPI = await this.configPrompter.getHuntbotSolver(this.config.useAdotfAPI);
         }
@@ -75,7 +74,7 @@ export class InquirerUI {
             "Toggle Automatically Send Clover",
             this.config.autoClover
         );
-        if(
+        if (
             (this.config.autoCookie || this.config.autoClover)
             && !this.config.adminID
         ) {
@@ -135,15 +134,16 @@ export class InquirerUI {
         }
 
         try {
+            logger.info("Checking account...");
             await client.checkAccount(this.config.token);
         } catch (error) {
-            logger.error(error as Error)
+            logger.error(error as Error);
             logger.error("Invalid token or QR code. Please try again.");
             process.exit(-1);
         }
-        
-        if(!this.config) await this.editConfig();
-        else switch(await this.configPrompter.listActions(Object.keys(this.config).length > 1)) {
+
+        if (!this.config || Object.keys(this.config).length <= 5) await this.editConfig();
+        else switch (await this.configPrompter.listActions(Object.keys(this.config).length > 1)) {
             case "run":
                 break;
             case "edit":

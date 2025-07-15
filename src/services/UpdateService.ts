@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { execSync, exec, spawnSync, spawn } from "node:child_process";
+import { execSync, exec, spawn } from "node:child_process";
 import { promisify } from "node:util";
 
 import axios from "axios";
@@ -9,6 +9,7 @@ import AdmZip from "adm-zip";
 
 import { copyDirectory } from "../utils/path.js";
 import { logger } from "@/utils/logger.js";
+import packageJSON from "#/package.json" with { type: "json" };
 
 export class UpdateFeature {
     private baseHeaders = {
@@ -18,7 +19,7 @@ export class UpdateFeature {
     public checkForUpdates = async () => {
         logger.info("Checking for updates...");
         try {
-            const { version: currentVersion } = require("../../package.json");
+            const { version: currentVersion } = packageJSON;
             const { data: { version: latestVersion } } = await axios.get(
                 "https://raw.githubusercontent.com/Kyou-Izumi/advanced-discord-owo-tool-farm/refs/heads/main/package.json",
                 {
@@ -33,7 +34,7 @@ export class UpdateFeature {
 
             logger.info(`You are using the latest version: ${currentVersion}.`);
         } catch (error) {
-            logger.error(`Failed to check for updates: ${error}`);
+            logger.error(`Failed to check for updates:` + error);
         }
 
         return false;

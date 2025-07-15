@@ -4,20 +4,19 @@ import { quotes } from "@/utils/quotes.js";
 
 export default Schematic.registerFeature({
     name: "autoQuote",
-    cooldown: () => 5000,
+    cooldown: () => 10_000,
     condition: async ({ agent }) => {
         return agent.config.autoQuote.length > 0;
     },
     run: async ({ agent }) => {
-
+        let quote: string;
         switch (agent.config.autoQuote[ranInt(0, agent.config.autoQuote.length)]) {
             case "owo":
-                await agent.send("owo");
+                quote = "owo";
             case "quote":
-                const quote = quotes[ranInt(0, quotes.length)];
-                agent.send(quote, { prefix: "", channel: agent.activeChannel });
+                quote = quotes[ranInt(0, quotes.length)];
                 break;
         }
-        agent.totalTexts++;
+        agent.send(quote, { prefix: "", channel: agent.activeChannel, skipLogging: true });
     }
 });

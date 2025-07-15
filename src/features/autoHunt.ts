@@ -4,6 +4,7 @@ import { Schematic } from "@/structure/classes/Schematic.js";
 import { logger } from "@/utils/logger.js";
 
 import { FeatureFnParams } from "@/typings/index.js";
+import { ranInt } from "@/utils/math.js";
 
 const GEM_REGEX = {
     gem1: /^05[1-7]$/,
@@ -30,6 +31,7 @@ const useGems = async (param1: FeatureFnParams, huntMsg: Message) => {
         filter: (m) => m.author.id === agent.owoID
             && m.content.includes(m.guild?.members.me?.displayName!)
             && m.content.includes("Inventory"),
+        expectResponse: true,
     });
 
     if (!invMsg) return;
@@ -45,6 +47,7 @@ const useGems = async (param1: FeatureFnParams, huntMsg: Message) => {
 
         // After opening, re-run the hunt to get an accurate state.
         logger.debug("Lootboxes opened, re-running useGems logic to check inventory again.");
+        await agent.client.sleep(ranInt(2000, 6000)); // Wait a bit for the lootbox to open
         await useGems(param1, huntMsg);
         return;
     }
@@ -81,10 +84,10 @@ const useGems = async (param1: FeatureFnParams, huntMsg: Message) => {
     if (!huntMsg.content.includes("gem1") && agent.gem1Cache.length > 0) {
         gemsToUse.push(agent.config.autoGem > 0 ? Math.max(...agent.gem1Cache) : Math.min(...agent.gem1Cache));
     }
-    if (!huntMsg.content.includes("gem2") && agent.gem2Cache.length > 0) {
+    if (!huntMsg.content.includes("gem3") && agent.gem2Cache.length > 0) {
         gemsToUse.push(agent.config.autoGem > 0 ? Math.max(...agent.gem2Cache) : Math.min(...agent.gem2Cache));
     }
-    if (!huntMsg.content.includes("gem3") && agent.gem3Cache.length > 0) {
+    if (!huntMsg.content.includes("gem4") && agent.gem3Cache.length > 0) {
         gemsToUse.push(agent.config.autoGem > 0 ? Math.max(...agent.gem3Cache) : Math.min(...agent.gem3Cache));
     }
     if (agent.config.useSpecialGem && !huntMsg.content.includes("star") && agent.starCache.length > 0) {
@@ -113,15 +116,16 @@ export default Schematic.registerFeature({
         const huntMsg = await agent.awaitResponse({
             trigger: () => agent.send("hunt"),
             filter: (m) => m.author.id === agent.owoID
-                && m.content.includes(agent.client.user.username)
+                && m.content.includes(m.guild?.members.me?.displayName!)
                 && /hunt is empowered by|spent 5 .+ and caught a/.test(m.content),
+            expectResponse: true,
         });
 
         if (!huntMsg) return;
 
         const gem1Needed = !huntMsg.content.includes("gem1") && (!agent.gem1Cache || agent.gem1Cache.length > 0);
-        const gem2Needed = !huntMsg.content.includes("gem2") && (!agent.gem2Cache || agent.gem2Cache.length > 0);
-        const gem3Needed = !huntMsg.content.includes("gem3") && (!agent.gem3Cache || agent.gem3Cache.length > 0);
+        const gem2Needed = !huntMsg.content.includes("gem3") && (!agent.gem2Cache || agent.gem2Cache.length > 0);
+        const gem3Needed = !huntMsg.content.includes("gem4") && (!agent.gem3Cache || agent.gem3Cache.length > 0);
         const starNeeded = Boolean(agent.config.useSpecialGem && !huntMsg.content.includes("star") && (!agent.starCache || agent.starCache.length > 0));
 
         // const condition = agent.config.

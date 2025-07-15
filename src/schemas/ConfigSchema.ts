@@ -77,29 +77,29 @@ export const ConfigSchema = z.object({
             message: "Webhook URL is required when 'webhook' is selected in wayNotify"
         });
     }
-    if((value.wayNotify.includes("dms") || value.wayNotify.includes("call") && !value.adminID)) {
+    if ((value.wayNotify.includes("dms") || value.wayNotify.includes("call")) && !value.adminID) {
         issues.push({
             code: "custom",
             input: value.adminID,
             message: "Admin ID is required when 'dms' or 'call' is selected in wayNotify"
         });
     }
-    if(value.wayNotify.includes("music") && !value.musicPath) {
+    if (value.wayNotify.includes("music") && !value.musicPath) {
         issues.push({
             code: "custom",
             input: value.musicPath,
             message: "Music path is required when 'music' is selected in wayNotify"
         });
     }
-    if(value.captchaAPI && !value.apiKey) {
+    if (value.captchaAPI && !value.apiKey) {
         issues.push({
             code: "custom",
             input: value.apiKey,
             message: "API key is required when captchaAPI is set"
         });
     }
-    if(value.autoGem !== 0) {
-        if(!value.gemTier || value.gemTier.length === 0) {
+    if (value.autoGem !== 0) {
+        if (!value.gemTier || value.gemTier.length === 0) {
             issues.push({
                 code: "custom",
                 input: value.gemTier,

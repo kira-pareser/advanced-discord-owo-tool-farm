@@ -60,7 +60,7 @@ export class ConfigPrompter extends BasePrompter {
                     disabled: !hasCache && "No existing config found"
                 },
                 {
-                    name: "Create or Edit Config",
+                    name: "Edit Config",
                     value: "edit"
                 },
                 {
@@ -149,7 +149,7 @@ export class ConfigPrompter extends BasePrompter {
 
         return this.ask(input, {
             message: "Enter user ID you want to:\n"
-                + " + Use Selfbot commands\n"
+                + " + Use Selfbot commands (if prefix is set)\n"
                 + " + Receive Cookie (if autoCookie is enabled)\n"
                 + " + Receive Clover (if autoClover is enabled)\n"
                 + " + Receive Notifications on captcha detected\n"
@@ -270,6 +270,7 @@ export class ConfigPrompter extends BasePrompter {
 
     public getGemTier = (cache?: Configuration["gemTier"]) =>
         this.ask(checkbox<Exclude<Configuration["gemTier"], undefined>[number]>, {
+            validate: choices => choices.length > 0 || "You must select at least one gem tier.",
             message: "Select gem tiers to use (spacebar to select): ",
             choices: [
                 {

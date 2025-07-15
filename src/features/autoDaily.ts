@@ -17,7 +17,7 @@ export default Schematic.registerFeature({
         return nextDay.getTime() - now.getTime();
     },
     condition: async ({ agent: { config } }) => {
-        if (!config.autoCookie) return false;
+        if (!config.autoDaily) return false;
 
         return true;
     },

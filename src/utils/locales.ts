@@ -1,4 +1,4 @@
-import { get } from "lodash"
+import lodash from "lodash"
 
 import locales from "@/locales/index.js"
 import { Path } from "@/typings/path-value.js";
@@ -8,7 +8,7 @@ export const translate = (locale: Locale) => {
     const data = locales[locale];
 
     return (path: I18nPath, ...args: unknown[]) => {
-        return format(get(data, path), ...args);
+        return format(lodash.get(data, path), ...args);
     }
 }
 

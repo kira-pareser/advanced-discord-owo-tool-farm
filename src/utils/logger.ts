@@ -29,7 +29,7 @@ const levelFormats: Record<LogLevel, string> = {
 
 const consoleFormat = printf(({ level, message, timestamp, stack }) => {
     const formattedLevel = levelFormats[level as LogLevel] || chalk.whiteBright.bold(`[${level.toUpperCase()}]`);
-    const formattedTimestamp = chalk.bgYellowBright.whiteBright(timestamp);
+    const formattedTimestamp = chalk.bgYellow.whiteBright(timestamp);
 
     if (stack) {
         return util.format(
@@ -37,8 +37,7 @@ const consoleFormat = printf(({ level, message, timestamp, stack }) => {
             formattedTimestamp,
             formattedLevel,
             message,
-            chalk.redBright("%O"), // Pretty-print stack/object
-            stack
+            chalk.redBright(stack),
         )
     }
     return util.format(
@@ -55,7 +54,6 @@ class WinstonLogger {
 
     constructor() {
         this.logger = winston.createLogger({
-            level: "debug",
             levels: {
                 alert: 0,
                 error: 1,
@@ -66,20 +64,25 @@ class WinstonLogger {
                 sent: 6,
                 debug: 7,
             },
-            format: combine(
-                timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-                errors({ stack: true }),
-            ),
             transports: [
-                new winston.transports.Console(),
+                new winston.transports.Console({
+                    format: combine(
+                        timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+                        errors({ stack: true }),
+                        consoleFormat
+                    ),
+                    level: "sent"
+                }),
                 new winston.transports.File({
                     filename: LOG_FILE,
                     level: "debug",
                     maxsize: 5 * 1024 * 1024, // 5 MB
                     maxFiles: 5,
                     format: combine(
+                        timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+                        errors({ stack: true }),
+                        consoleFormat,
                         uncolorize(),
-                        consoleFormat
                     ),
                 }),
             ],
@@ -110,35 +113,35 @@ class WinstonLogger {
     }
 
     public alert(message: string | Error) {
-        this.log("alert", message);
+        return this.log("alert", message);
     }
 
     public error(message: string | Error) {
-        this.log("error", message);
+        return this.log("error", message);
     }
 
     public runtime(message: string | Error) {
-        this.log("runtime", message);
+        return this.log("runtime", message);
     }
 
     public warn(message: string | Error) {
-        this.log("warn", message);
+        return this.log("warn", message);
     }
 
     public info(message: string | Error) {
-        this.log("info", message);
+        return this.log("info", message);
     }
 
     public data(message: string | Error) {
-        this.log("data", message);
+        return this.log("data", message);
     }
 
     public sent(message: string | Error) {
-        this.log("sent", message);
+        return this.log("sent", message);
     }
 
     public debug(message: string | Error) {
-        this.log("debug", message);
+        return this.log("debug", message);
     }
 }
 

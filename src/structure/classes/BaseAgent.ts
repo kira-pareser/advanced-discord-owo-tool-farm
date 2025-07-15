@@ -1,4 +1,4 @@
-import { ClientEvents, Collection, GuildTextBasedChannel, Message } from "discord.js-selfbot-v13";
+import { ClientEvents, Collection, GuildMember, GuildTextBasedChannel, Message, User } from "discord.js-selfbot-v13";
 
 import path from "path";
 
@@ -52,6 +52,7 @@ export class BaseAgent {
     public autoSleepThreshold = ranInt(32, 200); // Default threshold for auto-sleep
 
     public captchaDetected = false;
+    private expectResponseOnAllAwaits = false;
 
     constructor(client: ExtendedClient<true>, config: Configuration) {
         this.client = client;
@@ -89,7 +90,7 @@ export class BaseAgent {
             const channel = this.client.channels.cache.get(channelID);
             if (channel && channel.isText()) {
                 this.activeChannel = channel as GuildTextBasedChannel;
-                logger.info(`Active channel set to: ${this.activeChannel.name} (${this.activeChannel.id})`);
+                logger.info(`Active channel set to: #${this.activeChannel.name}`);
 
                 return this.activeChannel;
             } else {
@@ -108,6 +109,7 @@ export class BaseAgent {
         for (const key of Object.keys(this.cache)) {
             (this.config as any)[key as keyof Configuration] = this.cache[key as keyof Configuration];
         }
+        logger.info("Configuration reloaded from cache.");
     }
 
     public send = async (content: string, options: SendMessageOptions = {
@@ -119,12 +121,31 @@ export class BaseAgent {
             return;
         }
 
-        return this.client.sendMessage(content, options)
+        this.client.sendMessage(content, options)
+        if(!!this.prefix) this.totalCommands++;
+        else this.totalTexts++;
+    }
+
+    private isBotOnline = async () => {
+        try {
+            const owo = await this.activeChannel.guild.members.fetch(this.owoID);
+            return !!owo && owo.presence?.status !== "offline";
+        } catch (error) {
+            logger.warn("Failed to check OwO status, assuming bot is offline or not in the guild.");
+            return false;
+        }
     }
 
     public awaitResponse = (options: AwaitResponseOptions): Promise<Message | undefined> => {
         return new Promise((resolve, reject) => {
-            const { channel = this.activeChannel, filter, time = 30_000, max = 1, trigger } = options;
+            const {
+                channel = this.activeChannel,
+                filter,
+                time = 30_000,
+                max = 1,
+                trigger,
+                expectResponse = false,
+            } = options;
 
             // 2. Add a guard clause for safety.
             if (!channel) {
@@ -135,7 +156,7 @@ export class BaseAgent {
 
             const collector = channel.createMessageCollector({
                 filter,
-                time, // Default to 30 seconds if no time is specified
+                time,
                 max,
             });
 
@@ -145,15 +166,14 @@ export class BaseAgent {
 
             collector.once("end", (collected) => {
                 if (collected.size === 0) {
+                    if (expectResponse || this.expectResponseOnAllAwaits) this.invalidResponseCount++;
                     logger.debug(`No response received within the specified time (${this.invalidResponseCount}/${this.invalidResponseThreshold}).`);
-                    this.invalidResponseCount++;
                     if (this.invalidResponseCount >= this.invalidResponseThreshold) {
-                        logger.error(`Invalid response count exceeded threshold (${this.invalidResponseThreshold}). Terminating agent.`);
-                        reject(new Error("Invalid response count exceeded threshold. Terminating agent."));
+                        reject(new Error("Invalid response count exceeded threshold."));
                     }
                     resolve(undefined);
                 } else {
-                    logger.debug(`Response received: ${collected.first()?.content.slice(0, 25)}...`);
+                    logger.debug(`Response received: ${collected.first()?.content.slice(0, 35)}...`);
                     this.invalidResponseCount = 0; // Reset invalid response count on successful collection
                 }
             });
@@ -224,9 +244,17 @@ export class BaseAgent {
         }
 
         for (const featureKey of shuffleArray(featureKeys)) {
-            if(this.captchaDetected) {
-                logger.warn("Captcha detected, skipping feature execution.");
+            if (this.captchaDetected) {
+                logger.debug("Captcha detected, skipping feature execution.");
                 return;
+            }
+
+            const botStatus = await this.isBotOnline();
+            if (!botStatus) {
+                logger.warn("OwO bot offline status detected, expecting response on all awaits.");
+                this.expectResponseOnAllAwaits = true;
+            } else {
+                this.expectResponseOnAllAwaits = false;
             }
 
             const feature = this.features.get(featureKey);
@@ -236,43 +264,39 @@ export class BaseAgent {
             }
 
             try {
-                const shouldRun = await feature.condition({ agent: this, ...i18n(process.env.LOCALE || "en") });
-                if (shouldRun) {
-                    logger.info(`Running feature: ${feature.name}`);
-                    const res = await feature.run({ agent: this, ...i18n(process.env.LOCALE || "en") });
-                    if (res instanceof Number) {
-                        this.cooldownManager.set("feature", feature.name, Number(res));
-                    } else {
-                        this.cooldownManager.set("feature", feature.name, feature.cooldown() || 30_000); // Default to 30 seconds if no cooldown is specified
-                    }
-                } else {
-                    logger.debug(`Skipping feature: ${feature.name} due to condition check.`);
-                }
-                await this.client.sleep(ranInt(1000, 5000)); // Random sleep between 1 to 5 seconds between feature runs
+                const shouldRun = await feature.condition({ agent: this, ...i18n(process.env.LOCALE || "en") })
+                    && this.cooldownManager.onCooldown("feature", feature.name) === 0;
+                if (!shouldRun) continue;
+
+                const res = await feature.run({ agent: this, ...i18n(process.env.LOCALE || "en") });
+                this.cooldownManager.set("feature", feature.name, res instanceof Number ? Number(res) : feature.cooldown() || 30_000);
+                await this.client.sleep(ranInt(100, 800)); // Random sleep between feature runs
             } catch (error) {
                 logger.error(`Error running feature ${feature.name}:`);
                 logger.error(error as Error);
             }
         }
-        this.farmLoop(); // Recursively call farmLoop to continue the farming process
+        await this.client.sleep(ranInt(1000, 5000));
+        this.farmLoop();
     }
 
     private registerEvents = async () => {
+        const internationalization = i18n(process.env.LOCALE || "en");
         await featuresHandler.run({
             agent: this,
-            ...i18n(process.env.LOCALE || "en"),
+            ...internationalization,
         });
         logger.info(`Registered ${this.features.size} features.`);
 
         await commandsHandler.run({
             agent: this,
-            ...i18n(process.env.LOCALE || "en"),
+            ...internationalization,
         });
         logger.info(`Registered ${this.commands.size} commands.`);
 
         await eventsHandler.run({
             agent: this,
-            ...i18n(process.env.LOCALE || "en"),
+            ...internationalization,
         });
     }
 
@@ -283,15 +307,7 @@ export class BaseAgent {
         }
 
         const agent = new BaseAgent(client, config);
-
-        // Force until a valid channel is set
-        const channel = agent.setActiveChannel();
-        if (!channel) {
-            throw new Error("Failed to set active channel. An invalid or unreachable channel ID was provided.");
-        }
-
-        agent.activeChannel = channel;
-        logger.info(`Active channel set to: #${channel.name}`);
+        agent.setActiveChannel();
 
         await agent.registerEvents();
         logger.debug("BaseAgent initialized successfully.");

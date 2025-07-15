@@ -105,6 +105,7 @@ interface SendMessageOptions {
     channel: TextBasedChannel
     prefix?: string
     typing?: number
+    skipLogging?: boolean
 }
 
 interface AwaitResponseOptions {
@@ -113,6 +114,7 @@ interface AwaitResponseOptions {
     trigger: () => MaybePromise<unknown>;
     time?: number;
     max?: number;
+    expectResponse?: boolean; // If true, waits for a response from the bot
 }
 
 interface AwaitSlashResponseOptions {

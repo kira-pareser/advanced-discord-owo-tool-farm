@@ -181,6 +181,7 @@ export class CaptchaService {
                 const { location } = await agent.client.authorizeURL("https://discord.com/oauth2/authorize?response_type=code&redirect_uri=https%3A%2F%2Fowobot.com%2Fapi%2Fauth%2Fdiscord%2Fredirect&scope=identify%20guilds%20email%20guilds.members.read&client_id=408785106942164992")
                 await captchaService.solveHcaptcha(location);
             }
+            agent.totalCaptchaSolved++;
             await notificationService.notify(params, {
                 title: "CAPTCHA DETECTED",
                 description: "Status: ✅ RESOLVED",
@@ -203,6 +204,8 @@ export class CaptchaService {
             logger.error(error as Error);
             logger.alert("Attempt to solve captcha failed, waiting for manual resolution.");
             logger.info(`WAITING FOR THE CAPTCHA TO BE RESOLVED TO ${agent.config.autoResume ? "RESTART" : "STOP"}...`);
+            
+            agent.totalCaptchaFailed++;
             await notificationService.notify(params, {
                 title: "CAPTCHA DETECTED",
                 description: `Status: ❌ **UNRESOLVED**`,
