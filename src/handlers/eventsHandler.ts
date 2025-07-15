@@ -7,37 +7,38 @@ import { importDefault } from "@/utils/import.js";
 import { EventOptions } from "@/typings/index.js";
 
 export default Schematic.registerHandler({
-  run: async (BaseParams) => {
-    const { agent, client } = BaseParams;
-    const featuresFolder = path.join(agent.rootDir, "events");
-    const statDir = fs.statSync(featuresFolder);
-    if (!statDir.isDirectory()) {
-      logger.warn(`Events folder not found, creating...`);
-      fs.mkdirSync(featuresFolder, { recursive: true });
-    }
-    client.removeAllListeners();
-    for (const file of fs.readdirSync(featuresFolder)) {
-      if (!file.endsWith(".js") && !file.endsWith(".ts")) {
-        logger.warn(`Skipping non-JS/TS file: ${file}`);
-        continue;
-      }
+	run: async (BaseParams) => {
+		const { agent } = BaseParams;
+		const eventsFolder = path.join(agent.rootDir, "events");
+		const statDir = fs.statSync(eventsFolder);
+		if (!statDir.isDirectory()) {
+			logger.warn(`Events folder not found, creating...`);
+			fs.mkdirSync(eventsFolder, { recursive: true });
+		}
+		agent.client.removeAllListeners();
+		for (const file of fs.readdirSync(eventsFolder)) {
+			if (!file.endsWith(".js") && !file.endsWith(".ts")) {
+				logger.warn(`Skipping non-JS/TS file: ${file}`);
+				continue;
+			}
 
-      const filePath = path.join(featuresFolder, file);
-      try {
-        const event = await importDefault<EventOptions>(filePath);
-        if (!event || typeof event !== "object" || !event.name) {
-          logger.warn(`Invalid feature in ${filePath}, skipping...`);
-          continue;
-        }
-        if (event.disabled) continue; 
-        client[event.once ? "once" : "on"](
-          event.event,
-          (...args) => void event.handler(BaseParams, ...args)
-        );
-      } catch (error) {
-        logger.error(`Error loading feature from ${filePath}:`);
-        logger.error(error as Error);
-      }
-    }
-  },
+			const filePath = path.join(eventsFolder, file);
+			try {
+				const event = await importDefault<EventOptions>(filePath);
+				if (!event || typeof event !== "object" || !event.name) {
+					logger.warn(`Invalid event in ${filePath}, skipping...`);
+					continue;
+				}
+				if (event.disabled) continue;
+				agent.client[event.once ? "once" : "on"](
+					event.event,
+					(...args) => void event.handler(BaseParams, ...args)
+				);
+				logger.debug(`Loaded event: ${event.name} from ${filePath}`);
+			} catch (error) {
+				logger.error(`Error loading event from ${filePath}:`);
+				logger.error(error as Error);
+			}
+		}
+	},
 });

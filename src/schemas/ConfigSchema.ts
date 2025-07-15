@@ -20,7 +20,7 @@ export const ConfigSchema = z.object({
     adminID: z.string().optional(),
     musicPath: z.string().optional(),
     prefix: z.string().optional(),
-    captchaAPI: z.literal("2captcha").optional(),
+    captchaAPI: z.enum(["2captcha", "yescaptcha"]).optional(),
     apiKey: z.string().optional(),
     autoHuntbot: z.boolean(),
     autoTrait: z.enum([
@@ -31,7 +31,7 @@ export const ConfigSchema = z.object({
         "experience",
         "radar"
     ]).optional(),
-    useAdosAPI: z.boolean().optional(),
+    useAdotfAPI: z.boolean().optional(),
     autoPray: z.array(z.string()),
     autoGem: z.union([z.literal(0), z.literal(-1), z.literal(1)]),
     gemTier: z.array(z.enum([
@@ -39,16 +39,15 @@ export const ConfigSchema = z.object({
         "uncommon",
         "rare",
         "epic",
-        "legendary",
         "mythical",
+        "legendary",
         "fabled"
     ])).default([
         "common",
         "uncommon",
         "rare",
         "epic",
-        "legendary",
-        "mythical"
+        "mythical",
     ]).optional(),
     useSpecialGem: z.boolean().optional(),
     autoLootbox: z.boolean().optional(),
@@ -110,15 +109,4 @@ export const ConfigSchema = z.object({
     }
 })
 
-//.check((data, ctx) => {
-//     if(data.wayNotify.includes("webhook") && !data.webhookURL) {
-//         ctx.addIssue({
-//             code: "custom",
-//             message: "Webhook URL is required when 'webhook' is selected in wayNotify"
-//         });
-//     }
-// })
-
 export type Configuration = z.infer<typeof ConfigSchema>;
-
-// export const validateConfig = (obj: unknown): z.infer<typeof ConfigSchema> => ConfigSchema.parse(obj);

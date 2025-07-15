@@ -8,5 +8,44 @@
             "description": "Check how long the bot has been running",
             "response": "Uptime: **%s**"
         }
+    },
+    "logger": {
+        "prefix": {
+            "alert": "ALERT",
+            "error": "ERROR",
+            "runtime": "RUNTIME",
+            "warn": "WARN",
+            "info": "INFO",
+            "data": "DATA",
+            "sent": "SENT",
+            "debug": "DEBUG"
+        },
+        "terminated": "SELFBOT HAS BEEN TERMINATED",
+        "banned": "ACCOUNT HAS BEEN BANNED",
+        "stop": "STOPPING SELFBOT...",
+        "total": {
+            "texts": "Total texts sent: %s",
+            "commands": "Total commands sent: %s",
+            "uptime": "Total uptime: %s",
+            "captchaSolved": "Total captchas solved: %s",
+            "captchaFailed": "Total captchas failed: %s"
+        }
+    },
+    "captcha": {
+        "detected": "Captcha detected in channel: %s"
+    },
+    "error": {
+        "noresponse": "Number of no responses received from OwO bot exceeded the threshold %s.",
+        "adminID": {
+            "notconfigured": "Admin ID is not configured in the settings. Please set it to receive notifications.",
+            "invalid": "The configured Admin ID is invalid. Please set a valid user ID.",
+            "unreachable": "The admin user is unreachable. Please check if the user exists and is not blocked."
+        }
+    },
+    "notifier": {
+        "skip": "Skipping %s execution",
+        "error": {
+            "execution": "Error executing %s notifier: %s"
+        }
     }
 }

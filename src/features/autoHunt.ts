@@ -102,9 +102,7 @@ const useGems = async (param1: FeatureFnParams, huntMsg: Message) => {
 export default Schematic.registerFeature({
     name: "autoHunt",
     cooldown: () => 15_000,
-    condition: async () => {
-        return true;
-    },
+    condition: async () => true,
     run: async ({ agent, t, locale }) => {
 
         if (agent.config.autoGem === 0) {
@@ -125,6 +123,8 @@ export default Schematic.registerFeature({
         const gem2Needed = !huntMsg.content.includes("gem2") && (!agent.gem2Cache || agent.gem2Cache.length > 0);
         const gem3Needed = !huntMsg.content.includes("gem3") && (!agent.gem3Cache || agent.gem3Cache.length > 0);
         const starNeeded = Boolean(agent.config.useSpecialGem && !huntMsg.content.includes("star") && (!agent.starCache || agent.starCache.length > 0));
+
+        // const condition = agent.config.
 
         if (gem1Needed || gem2Needed || gem3Needed || starNeeded) await useGems({ agent, t, locale }, huntMsg);
     }

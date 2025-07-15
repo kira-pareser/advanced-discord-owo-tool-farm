@@ -21,7 +21,9 @@ export class UpdateFeature {
             const { version: currentVersion } = require("../../package.json");
             const { data: { version: latestVersion } } = await axios.get(
                 "https://raw.githubusercontent.com/Kyou-Izumi/advanced-discord-owo-tool-farm/refs/heads/main/package.json",
-                { headers: this.baseHeaders }
+                {
+                    headers: this.baseHeaders
+                }
             );
 
             if (currentVersion < latestVersion) {

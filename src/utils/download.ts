@@ -15,5 +15,5 @@ export const downloadAttachment = async (url: string): Promise<Buffer> => {
             "Content-Type": "application/octet-stream",
         },
     });
-    return Buffer.from(response.data);
+    return Buffer.from(response.data, "binary");
 };

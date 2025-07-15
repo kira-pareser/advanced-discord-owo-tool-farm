@@ -2,9 +2,6 @@ import { Schematic } from "@/structure/classes/Schematic.js";
 
 export default Schematic.registerFeature({
 	name: "autoCookie",
-	options: {
-		overrideCooldown: true,
-	},
 	cooldown: () => {
 		const date = new Date();
 		return date.setDate(date.getDate() + 1) - Date.now();

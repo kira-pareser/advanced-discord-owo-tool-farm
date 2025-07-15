@@ -5,9 +5,6 @@ import { ranInt } from "@/utils/math.js";
 
 export default Schematic.registerFeature({
     name: "changeChannel",
-    options: {
-        overrideCooldown: true
-    },
     cooldown: () => 5000,
     condition: async ({ agent }) => {
         if (agent.config.channelID.length <= 1) return false;
@@ -16,6 +13,6 @@ export default Schematic.registerFeature({
     },
     run: async ({ agent }) => {
         agent.channelChangeThreshold += ranInt(17, 56);
-        await agent.setActiveChannel();
+        agent.setActiveChannel();
     }
 })

@@ -1,0 +1,233 @@
+import { Configuration } from "@/schemas/ConfigSchema.js";
+import { CaptchaSolver, FeatureFnParams } from "@/typings/index.js";
+import { TwoCaptchaSolver } from "@/services/solvers/TwoCaptchaSolver.js";
+import { YesCaptchaSolver } from "@/services/solvers/YesCaptchaSolver.js";
+import { downloadAttachment } from "@/utils/download.js";
+import { logger } from "@/utils/logger.js";
+import axios from "axios";
+import { wrapper } from "axios-cookiejar-support";
+import { CookieJar } from "tough-cookie";
+import os from "node:os";
+import { Message, MessageActionRow, MessageButton } from "discord.js-selfbot-v13";
+import { NORMALIZE_REGEX } from "@/typings/constants.js";
+import { NotificationService } from "./NotificationService.js";
+
+interface CaptchaServiceOptions {
+    provider?: Configuration["captchaAPI"];
+    apiKey?: string;
+}
+
+/**
+ * Maps Node.js os.platform() output to sec-ch-ua-platform values.
+ */
+const getPlatformForHeader = (): string => {
+    switch (os.platform()) {
+        case "win32":
+            return "Windows";
+        case "darwin":
+            return "macOS";
+        case "linux":
+            return "Linux";
+        default:
+            // A sensible default for other platforms like FreeBSD, etc.
+            return "Unknown";
+    }
+};
+
+const createSolver = (provider: Configuration["captchaAPI"], apiKey: string): CaptchaSolver | undefined => {
+    switch (provider) {
+        case "yescaptcha":
+            return new YesCaptchaSolver(apiKey);
+        case "2captcha":
+            return new TwoCaptchaSolver(apiKey);
+        default:
+            logger.error(`Unknown captcha provider: ${provider}`);
+            return undefined;
+    }
+}
+
+export class CaptchaService {
+    private solver: CaptchaSolver | undefined;
+
+    private axiosInstance = wrapper(axios.create({
+        jar: new CookieJar(),
+        headers: {
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Content-Type": "application/json",
+            "Priority": "u=1, i",
+            "Sec-Ch-Ua": `"Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"`,
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": `"${getPlatformForHeader()}"`,
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+        }
+    }))
+
+    constructor({ provider, apiKey }: CaptchaServiceOptions) {
+        if (provider && apiKey) {
+            this.solver = createSolver(provider, apiKey);
+        } else {
+            logger.warn("Captcha API or API key not configured. Captcha handling will be disabled.");
+        }
+    }
+
+    public solveImageCaptcha = async (attachmentUrl: string): Promise<string> => {
+        if (!this.solver) {
+            throw new Error("Captcha solver is not configured.");
+        }
+
+        logger.debug(`Downloading captcha image from ${attachmentUrl}`);
+        const imageBuffer = await downloadAttachment(attachmentUrl);
+
+        const solution = await this.solver.solveImage(imageBuffer);
+        logger.debug(`Captcha solution: ${solution}`);
+
+        return solution;
+    }
+
+    public solveHcaptcha = async (
+        location: string,
+        sitekey: string = "a6a1d5ce-612d-472d-8e37-7601408fbc09",
+        siteurl: string = "https://owobot.com"
+    ): Promise<void> => {
+        if (!this.solver) {
+            throw new Error("Captcha solver is not configured.");
+        }
+
+        await this.axiosInstance.get(location, {
+            headers: {
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                "Priority": "u=0, i",
+                "Referer": "https://discord.com/",
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "cross-site",
+                "Sec-Fetch-User": "?1",
+                "Upgrade-Insecure-Requests": "1",
+            }
+        })
+
+        const accountResponse = await this.axiosInstance.get("https://owobot.com/api/auth", {
+            headers: {
+                "Origin": "https://owobot.com",
+                "Referer": "https://owobot.com/",
+            }
+        })
+
+        if (accountResponse.data?.banned || !accountResponse.data?.captcha?.active) {
+            throw new Error("Captcha is not active or account is banned.");
+        }
+
+        logger.debug(`Solving hCaptcha with sitekey: ${sitekey} and siteurl: ${siteurl}`);
+        const solution = await this.solver.solveHcaptcha(sitekey, siteurl);
+        logger.debug(`hCaptcha response token: ${solution.slice(0, 20)}...`);
+
+        const verificationResponse = await this.axiosInstance.post("https://owobot.com/api/captcha/verify", {
+            code: solution,
+        }, {
+            headers: {
+                "Origin": "https://owobot.com",
+                "Referer": "https://owobot.com/captcha",
+            }
+        });
+
+        if (verificationResponse.status !== 200) {
+            throw new Error(`Failed to verify captcha: ${verificationResponse.statusText}`);
+        }
+    }
+
+    public static async handleCaptcha(params: FeatureFnParams, message: Message): Promise<void> {
+        const { agent, t, locale } = params;
+        const normalizedContent = message.content.normalize("NFC").replace(NORMALIZE_REGEX, "");
+
+        const captchaService = new CaptchaService(agent.config);
+        const notificationService = new NotificationService();
+
+        NotificationService.consoleNotify(params)
+
+        try {
+            const attachmentUrl = message.attachments.first()?.url;
+            if (attachmentUrl) {
+                logger.debug("Image captcha detected, attempting to solve...");
+                const solution = await captchaService.solveImageCaptcha(attachmentUrl);
+
+                logger.debug(`Attempting reach OwO bot...`);
+                const owo = await agent.client.users.fetch(agent.owoID);
+
+                const dms = await owo.createDM();
+                logger.debug(`DM channel created, sending captcha solution...`);
+
+                const captchaResponse = await agent.awaitResponse({
+                    channel: dms,
+                    filter: (msg) => msg.author.id == agent.owoID && /verified that you are.{1,3}human!/igm.test(msg.content),
+                    trigger: async () => dms.send(solution)
+                });
+
+                if (!captchaResponse) {
+                    throw new Error("No response from OwO bot after sending captcha solution.");
+                }
+            } else if (
+                /(https?:\/\/[^\s]+)/g.test(normalizedContent)
+                || (
+                    message.components.length > 0 && message.components[0].type == "ACTION_ROW"
+                    && (message.components[0] as MessageActionRow).components[0].type == "BUTTON"
+                    && /(https?:\/\/[^\s]+)/g.test(((message.components[0] as MessageActionRow).components[0] as MessageButton).url || "")
+                )
+            ) {
+                const { location } = await agent.client.authorizeURL("https://discord.com/oauth2/authorize?response_type=code&redirect_uri=https%3A%2F%2Fowobot.com%2Fapi%2Fauth%2Fdiscord%2Fredirect&scope=identify%20guilds%20email%20guilds.members.read&client_id=408785106942164992")
+                await captchaService.solveHcaptcha(location);
+            }
+            await notificationService.notify(params, {
+                title: "CAPTCHA DETECTED",
+                description: "Status: ✅ RESOLVED",
+                urgency: "normal",
+                content: `${agent.config.adminID ? `<@${agent.config.adminID}> ` : ""}Captcha detected in channel: <#${message.channel.id}>`,
+                sourceUrl: message.url,
+                imageUrl: attachmentUrl,
+                fields: [
+                    {
+                        name: "Captcha Type",
+                        value: attachmentUrl
+                            ? `[Image Captcha](${attachmentUrl})`
+                            : "[Link Captcha](https://owobot.com/captcha)",
+                        inline: true
+                    },
+                ]
+            });
+        } catch (error) {
+            logger.error("Failed to solve captcha:");
+            logger.error(error as Error);
+            logger.alert("Attempt to solve captcha failed, waiting for manual resolution.");
+            logger.info(`WAITING FOR THE CAPTCHA TO BE RESOLVED TO ${agent.config.autoResume ? "RESTART" : "STOP"}...`);
+            await notificationService.notify(params, {
+                title: "CAPTCHA DETECTED",
+                description: `Status: ❌ **UNRESOLVED**`,
+                urgency: "critical",
+                content: `${agent.config.adminID ? `<@${agent.config.adminID}> ` : ""}Captcha detected in channel: <#${message.channel.id}>`,
+                sourceUrl: message.url,
+                imageUrl: message.attachments.first()?.url,
+                fields: [
+                    {
+                        name: "Captcha Type",
+                        value: message.attachments.first()
+                            ? `[Image Captcha](${message.attachments.first()?.url})`
+                            : "[Link Captcha](https://owobot.com/captcha)",
+                        inline: true
+                    },
+                    {
+                        name: "Last Error",
+                        value: `\`${error instanceof Error ? error.message : String(error)}\``,
+                    },
+                    {
+                        name: "Please resolve the captcha manually before",
+                        value: `<t:${Math.floor(message.createdTimestamp / 1000 + 600)}:f>`,
+                    },
+                ]
+            });
+        }
+    }
+}

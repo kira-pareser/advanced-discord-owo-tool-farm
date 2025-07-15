@@ -1,12 +1,42 @@
 import { BaseAgent } from "@/structure/classes/BaseAgent.ts";
 import { ExtendedClient } from "@/structure/classes/ExtendedClient.ts";
 import type { I18nPath, Locale, Translationfn } from "@/utils/locales.ts";
-import type { Client, ClientEvents, Message, PermissionResolvable, TextBasedChannel } from "discord.js-selfbot-v13";
+import type { Client, ClientEvents, GuildTextBasedChannel, Message, PermissionResolvable, TextBasedChannel, UserResolvable } from "discord.js-selfbot-v13";
 
 export type MaybePromise<T> = T | Promise<T>;
 
 export type ParameterType = string | GuildMember | User | Channel | Role;
 
+export interface CaptchaSolver {
+    /**
+     * Solves an image captcha from a buffer.
+     * @param imageData The image data as a Buffer.
+     * @returns A promise that resolves with the captcha solution text.
+     */
+    solveImage(imageData: Buffer): Promise<string>;
+
+    /**
+     * Solves an hCaptcha challenge.
+     * @param sitekey The hCaptcha sitekey for the target website.
+     * @param siteurl The URL of the page where the hCaptcha is present.
+     * @returns A promise that resolves with the hCaptcha response token.
+     */
+    solveHcaptcha(sitekey: string, siteurl: string): Promise<string>;
+}
+
+export interface NotificationPayload {
+    title: string;
+    description: string;
+    urgency: "normal" | "critical";
+    sourceUrl?: string; // e.g., the URL to the captcha message
+    imageUrl?: string;
+    content: string;
+    fields?: { name: string; value: string; inline?: boolean }[];
+}
+
+export interface NotifierStrategy {
+    execute(params: FeatureFnParams, payload: NotificationPayload): Promise<void>;
+}
 
 type EventOptions<T extends keyof ClientEvents = keyof ClientEvents> = {
     name: string;
@@ -18,8 +48,6 @@ type EventOptions<T extends keyof ClientEvents = keyof ClientEvents> = {
 
 interface BaseParams {
     agent: BaseAgent;
-    // client: ExtendedClient<true>;
-
     t: Translationfn;
     locale: Locale;
 }
@@ -27,8 +55,7 @@ interface BaseParams {
 export interface CommandParams extends BaseParams {
     message: Message
     args: Array<string | undefined>;
-    params: { [key: string]: string | undefined };
-
+    // params: { [key: string]: string | undefined };
 }
 
 type CommandOptions<InGuild extends boolean = boolean> = {
@@ -52,7 +79,7 @@ export interface CommandProps {
 interface HandlerParams extends BaseParams {}
 
 type HandlerProps = {
-    run: (args: HandlerParams) => MaybePromise<unknown>;
+    run: (args: HandlerParams) => MaybePromise;
 }
 
 interface FeatureFnParams extends BaseParams {
@@ -63,6 +90,7 @@ interface FeatureFnParams extends BaseParams {
 type BaseFeatureOptions = {
     overrideCooldown?: boolean;
     cooldownOnError?: number;
+    exclude?: boolean
 }
 export interface FeatureProps {
     name: string;
@@ -73,15 +101,31 @@ export interface FeatureProps {
     run: (args: FeatureFnParams) => MaybePromise<unknown>;
 }
 
-interface SendOptions {
+interface SendMessageOptions {
     channel: TextBasedChannel
     prefix?: string
     typing?: number
 }
 
 interface AwaitResponseOptions {
+    channel?: GuildTextBasedChannel | TextBasedChannel;
     filter: (message: Message) => boolean;
     trigger: () => MaybePromise<unknown>;
     time?: number;
     max?: number;
+}
+
+interface AwaitSlashResponseOptions {
+    channel?: GuildTextBasedChannel | TextBasedChannel;
+    bot: UserResolvable;
+    command: string;
+    args?: any[];
+    time?: number;
+    max?: number;
+}
+
+interface CLICommand {
+    command: string;
+    description: string;
+    handler: (args: any) => MaybePromise<unknown>;
 }

@@ -8,5 +8,17 @@
             "description": "Kiểm tra thời gian bot đã chạy",
             "response": "Thời gian hoạt động: **%s**"
         }
+    },
+    "logger": {
+        "prefix": {
+            "alert": "CẢNH BÁO",
+            "error": "LỖI",
+            "runtime": "THỜI GIAN CHẠY",
+            "warn": "CẢNH BÁO",
+            "info": "THÔNG TIN",
+            "data": "DỮ LIỆU",
+            "sent": "ĐÃ GỬI",
+            "debug": "GỠ LỖI"
+        }
     }
 }

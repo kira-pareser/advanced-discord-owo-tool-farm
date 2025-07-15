@@ -4,9 +4,6 @@ import { logger } from "@/utils/logger.js";
 
 export default Schematic.registerFeature({
     name: "autoPray",
-    options: {
-        overrideCooldown: true
-    },
     cooldown: () => 5 * 60 * 1000,
     condition: async ({ agent: { config } }) => {
         if (!config.autoPray || config.autoPray.length <= 0) return false;

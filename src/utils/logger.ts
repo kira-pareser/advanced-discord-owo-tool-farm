@@ -96,6 +96,11 @@ class WinstonLogger {
         return WinstonLogger.instance;
     }
 
+    public setLevel(level: LogLevel) {
+        this.logger.level = level;
+        this.logger.transports.find(t => t instanceof winston.transports.Console)!.level = level;
+    }
+
     public log(level: LogLevel, message: string | Error) {
         if (message instanceof Error) {
             this.logger.log(level, message.message, { stack: message.stack });

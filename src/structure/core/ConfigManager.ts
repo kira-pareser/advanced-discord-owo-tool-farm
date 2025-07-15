@@ -7,7 +7,6 @@ export class ConfigManager {
 
     constructor() {
         this.loadAll();
-        // this.loadConfig();
     }
 
     private loadAll = () => {
@@ -35,6 +34,15 @@ export class ConfigManager {
         }
         this.configs[key] = result.data;
         this.saveAll();
+    }
+
+    public delete = (key: string): boolean => {
+        if (this.configs[key]) {
+            delete this.configs[key];
+            this.saveAll();
+            return true;
+        }
+        return false;
     }
 
     private saveAll = (): void => {

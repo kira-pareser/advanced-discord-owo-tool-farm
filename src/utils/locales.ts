@@ -12,6 +12,13 @@ export const translate = (locale: Locale) => {
     }
 }
 
+export const i18n = (locale: Locale) => {
+    return {
+        t: translate(locale),
+        locale,
+    }
+}
+
 export type I18nPath = Path<typeof locales[keyof typeof locales]>;
 export type Translationfn = ReturnType<typeof translate>;
 export type Locale = keyof typeof locales

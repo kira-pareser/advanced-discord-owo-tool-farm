@@ -3,20 +3,17 @@ import { CommandProps } from "@/typings/index.js";
 import { logger } from "@/utils/logger.js";
 
 export default Schematic.registerEvent({
-	name: "commandEvent",
+	name: "commandCreate",
 	event: "messageCreate",
 	handler: async (BaseParams, message) => {
-		const { agent, client, config } = BaseParams;
+		const { agent, t, locale } = BaseParams;
 		if (message.author.bot) return;
-		if (!config.prefix || message.content.startsWith(config.prefix)) return;
-		const authorizedUserIDs = [
-			client.user.id,
-			...(config.adminID ? [config.adminID] : []),
-		];
-		if (!authorizedUserIDs.includes(message.author.id)) return;
+		if (!agent.config.prefix || !message.content.startsWith(agent.config.prefix)) return;
+
+		if (!agent.authorizedUserIDs.includes(message.author.id)) return;
 
 		const args = message.content
-			.slice(config.prefix.length)
+			.slice(agent.config.prefix.length)
 			.trim()
 			.split(/ +/g);
 
@@ -30,8 +27,8 @@ export default Schematic.registerEvent({
 		if (!command) return;
 
 		try {
-			const params = { ...BaseParams };
-			await command.execute();
+			const params = { ...BaseParams, message, args };
+			await command.execute(params);
 		} catch (error) {
 			logger.error(`Error executing command "${commandName}":`);
 			logger.error(error as Error);

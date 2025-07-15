@@ -1,15 +1,21 @@
 import { Schematic } from "@/structure/classes/Schematic.js";
+import { ranInt } from "@/utils/math.js";
 
 
 export default Schematic.registerFeature({
     name: "autoDaily",
-    options: {
-        overrideCooldown: true
-    },
     cooldown: () => {
-		const date = new Date();
-		return date.setDate(date.getDate() + 1) - Date.now();
-	},
+        const now = new Date();
+        const nextDay = new Date(
+            now.getUTCFullYear(), 
+            now.getUTCMonth(), 
+            now.getUTCDate() + 1, 
+            ranInt(0, 5), 
+            ranInt(0, 59), 
+            ranInt(0, 59)
+        );
+        return nextDay.getTime() - now.getTime();
+    },
     condition: async ({ agent: { config } }) => {
         if (!config.autoCookie) return false;
 

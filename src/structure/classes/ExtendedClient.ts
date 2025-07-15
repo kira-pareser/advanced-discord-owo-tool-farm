@@ -1,4 +1,4 @@
-import { SendOptions } from "@/typings/index.js";
+import { SendMessageOptions } from "@/typings/index.js";
 import { logger } from "@/utils/logger.js";
 import { ranInt } from "@/utils/math.js";
 import { Client, ClientOptions } from "discord.js-selfbot-v13";
@@ -20,7 +20,7 @@ export class ExtendedClient<Ready extends boolean = boolean> extends Client<Read
             channel,
             prefix = "",
             typing = ranInt(500, 1000)
-        }: SendOptions
+        }: SendMessageOptions
     ) => {
         await channel.sendTyping()
         await this.sleep(typing);
@@ -32,8 +32,8 @@ export class ExtendedClient<Ready extends boolean = boolean> extends Client<Read
     }
 
     public checkAccount = (token?: string) => {
-        return new Promise<Client<true>>((resolve, reject) => {
-            this.once("ready", resolve);
+        return new Promise<string>((resolve, reject) => {
+            this.once("ready", () => resolve(this.user?.id!));
 
             try {
                 if (token) {

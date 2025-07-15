@@ -5,16 +5,13 @@ import { ranInt } from "@/utils/math.js";
 
 export default Schematic.registerFeature({
     name: "autoReload",
-    options: {
-        overrideCooldown: true
-    },
     cooldown: () => {
         const date = new Date();
         date.setUTCHours(24, ranInt(0, 30), ranInt(0, 59), 0);
         return date.getTime() - Date.now();
     },
     condition: async ({ agent: { config } }) => {
-        return config.autoReload ?? false;
+        return config.autoReload;
     },
     run: ({ agent }) => {
         agent.reloadConfig();
