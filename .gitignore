@@ -3,11 +3,4 @@ package-lock.json
 pnpm-lock.yaml
 
 logs
-obfuscate.cmd
-obfuscate.sh
-
-src/security
-src/feats/B2KI.ts
-
-dest/src/feats/B2KI.js
-test.js
+assets/music.mp3

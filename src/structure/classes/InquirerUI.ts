@@ -113,7 +113,7 @@ export class InquirerUI {
 
     static prompt = async (client: ExtendedClient<true>) => {
         this.client = client;
-        this.configPrompter = new ConfigPrompter({ client, config: this.config });
+        this.configPrompter = new ConfigPrompter({ client, getConfig: () => this.config });
 
         const accountList = this.configManager.getAllKeys().map(key => ({
             username: this.configManager.get(key)?.username || "Unknown",

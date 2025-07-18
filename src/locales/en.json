@@ -7,6 +7,13 @@
         "uptime": {
             "description": "Check how long the bot has been running",
             "response": "Uptime: **%s**"
+        },
+        "say": {
+            "description": "Make the bot say something",
+            "noMessage": "You must provide a message to say.",
+            "success": "Message sent successfully.",
+            "noPermission": "I do not have permission to send messages in that channel.",
+            "invalidChannel": "Invalid channel specified. Please provide a valid text channel ID."
         }
     },
     "logger": {

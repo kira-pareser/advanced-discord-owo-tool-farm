@@ -7,7 +7,7 @@ export default Schematic.registerCommand({
     usage: "ping",
     execute: async ({ agent, message, t }) => {
         const latency = Date.now() - message.createdTimestamp;
-        message.channel.send({
+        message.reply({
             content: `🏓 | ${t("commands.ping.pong", latency, agent.client.ws.ping)}`
         })
     }

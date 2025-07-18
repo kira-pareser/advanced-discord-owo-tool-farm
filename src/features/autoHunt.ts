@@ -47,7 +47,7 @@ const useGems = async (param1: FeatureFnParams, huntMsg: Message) => {
 
         // After opening, re-run the hunt to get an accurate state.
         logger.debug("Lootboxes opened, re-running useGems logic to check inventory again.");
-        await agent.client.sleep(ranInt(2000, 6000)); // Wait a bit for the lootbox to open
+        await agent.client.sleep(ranInt(5000, 10000)); // Wait a bit for the lootbox to open
         await useGems(param1, huntMsg);
         return;
     }

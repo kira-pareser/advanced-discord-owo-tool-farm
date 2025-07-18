@@ -49,7 +49,8 @@ export class BaseAgent {
     starCache?: number[];
 
     public channelChangeThreshold = ranInt(17, 56);
-    public autoSleepThreshold = ranInt(32, 200); // Default threshold for auto-sleep
+    public autoSleepThreshold = ranInt(82, 400); // Default threshold for auto-sleep
+    public lastSleepAt = 0;
 
     public captchaDetected = false;
     private expectResponseOnAllAwaits = false;
@@ -122,7 +123,7 @@ export class BaseAgent {
         }
 
         this.client.sendMessage(content, options)
-        if(!!this.prefix) this.totalCommands++;
+        if (!!this.prefix) this.totalCommands++;
         else this.totalTexts++;
     }
 
@@ -166,8 +167,10 @@ export class BaseAgent {
 
             collector.once("end", (collected) => {
                 if (collected.size === 0) {
-                    if (expectResponse || this.expectResponseOnAllAwaits) this.invalidResponseCount++;
-                    logger.debug(`No response received within the specified time (${this.invalidResponseCount}/${this.invalidResponseThreshold}).`);
+                    if (expectResponse || this.expectResponseOnAllAwaits) {
+                        this.invalidResponseCount++;
+                        logger.debug(`No response received within the specified time (${this.invalidResponseCount}/${this.invalidResponseThreshold}).`);
+                    }
                     if (this.invalidResponseCount >= this.invalidResponseThreshold) {
                         reject(new Error("Invalid response count exceeded threshold."));
                     }
@@ -227,6 +230,8 @@ export class BaseAgent {
                 clearTimeout(timeout);
             }
 
+            message.client.on("messageUpdate", listener);
+
             timeout = setTimeout(() => {
                 cleanup();
                 reject(new Error("AwaitSlashResponse timed out"));
@@ -264,13 +269,14 @@ export class BaseAgent {
             }
 
             try {
-                const shouldRun = await feature.condition({ agent: this, ...i18n(process.env.LOCALE || "en") })
+                const internationalization = i18n(process.env.LOCALE);
+                const shouldRun = await feature.condition({ agent: this, ...internationalization })
                     && this.cooldownManager.onCooldown("feature", feature.name) === 0;
                 if (!shouldRun) continue;
 
-                const res = await feature.run({ agent: this, ...i18n(process.env.LOCALE || "en") });
+                const res = await feature.run({ agent: this, ...internationalization });
                 this.cooldownManager.set("feature", feature.name, res instanceof Number ? Number(res) : feature.cooldown() || 30_000);
-                await this.client.sleep(ranInt(100, 800)); // Random sleep between feature runs
+                await this.client.sleep(ranInt(500, 1600)); // Random sleep between feature runs
             } catch (error) {
                 logger.error(`Error running feature ${feature.name}:`);
                 logger.error(error as Error);

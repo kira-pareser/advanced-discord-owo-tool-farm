@@ -9,7 +9,7 @@ export default Schematic.registerCommand({
     execute: async ({ agent, message, t }) => {
         const uptime = formatTime(agent.client.readyTimestamp, Date.now());
 
-        message.channel.send({
+        message.reply({
             content: t("commands.uptime.response", uptime)
         });
     }

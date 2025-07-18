@@ -8,17 +8,20 @@ export default Schematic.registerFeature({
     name: "autoSleep",
     cooldown: () => 5000,
     condition: async ({ agent }) => {
-        return agent.config.autoSleep && agent.totalCommands >= agent.autoSleepThreshold;
+        return agent.config.autoSleep 
+            && agent.totalCommands - agent.lastSleepAt >= agent.autoSleepThreshold;
     },
     run: ({ agent }) => {
-        const sleepTime = mapInt(agent.autoSleepThreshold, 32, 200, 5 * 60 * 1000, 40 * 60 * 1000); // Map the threshold to a sleep time between 5 and 40 minutes
-        agent.autoSleepThreshold += ranInt(32, 200);
+        const commandsSinceLastSleep = agent.totalCommands - agent.lastSleepAt;
+        const sleepTime = mapInt(commandsSinceLastSleep, 52, 600, 5 * 60 * 1000, 40 * 60 * 1000); // Map the threshold to a sleep time between 5 and 40 minutes
+        const nextThreshold = ranInt(52, 600);
+        agent.lastSleepAt = agent.totalCommands; // Update the last sleep time to the current command count
+        agent.autoSleepThreshold = nextThreshold; // Add a random padding to the threshold for the next sleep
 
-        logger.info(`Sleeping for ${formatTime(0, sleepTime)}`);
-        logger.info(`Next sleep at ${agent.autoSleepThreshold} total commands for ${formatTime(0, mapInt(
-            agent.autoSleepThreshold,
-            agent.totalCommands + 32,
-            agent.totalCommands + 200,
+        logger.info(`Sleeping for ${formatTime(0, sleepTime)} after ${commandsSinceLastSleep} commands.`);
+        logger.info(`Next sleep after ${nextThreshold} commands for ${formatTime(0, mapInt(
+            nextThreshold,
+            52, 600, // Map the range of commands to the sleep time
             5 * 60 * 1000, 40 * 60 * 1000
         ))}`);
 

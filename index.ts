@@ -30,6 +30,12 @@ const argv = await yargs(hideBin(process.argv))
         description: "Skip the update check",
         default: false,
     })
+    .option("language", {
+        alias: "l",
+        type: "string",
+        description: "Set the language for the application",
+        default: "en",
+    })
     .help()
     .parse();
 

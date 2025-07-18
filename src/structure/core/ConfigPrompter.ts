@@ -12,22 +12,27 @@ import { ConfigManager } from "./ConfigManager.js";
 
 type ConfigPrompterOptions = {
     client: ExtendedClient<true>;
-    config: Partial<Configuration>;
+    // config: Partial<Configuration>;
+    getConfig: () => Partial<Configuration>
 };
 
 export class ConfigPrompter extends BasePrompter {
     private client: ExtendedClient<true>;
-    private config: Partial<Configuration>;
+    private getConfig: () => Partial<Configuration>;
 
     public static instance: ConfigPrompter;
 
     private audioRegex = /\.(mp3|wav|ogg|flac|aac|wma)$/;
     private webhookRegex = /https:\/\/discord.com\/api\/webhooks\/\d{17,19}\/[a-zA-Z0-9_-]{60,68}/;
 
-    constructor({ client, config }: ConfigPrompterOptions) {
+    constructor({ client, getConfig }: ConfigPrompterOptions) {
         super();
         this.client = client;
-        this.config = config || {};
+        this.getConfig = getConfig;
+    }
+
+    private get config(): Partial<Configuration> {
+        return this.getConfig();
     }
 
     public listAccounts = (accounts: { username: string, id: string }[]): Promise<"qr" | "token" | string> =>
@@ -153,7 +158,7 @@ export class ConfigPrompter extends BasePrompter {
                 + " + Receive Cookie (if autoCookie is enabled)\n"
                 + " + Receive Clover (if autoClover is enabled)\n"
                 + " + Receive Notifications on captcha detected\n"
-                + "Enter user ID" + (required && ", empty to skip") + ": ",
+                + "Enter user ID" + (required === true ? ", empty to skip" : "") + ": ",
             default: cache,
             validate: async (id) => {
                 if (!id && !required) return true;
