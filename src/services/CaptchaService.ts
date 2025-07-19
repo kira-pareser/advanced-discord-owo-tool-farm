@@ -1,5 +1,5 @@
 import { Configuration } from "@/schemas/ConfigSchema.js";
-import { BaseParams, CaptchaSolver, FeatureFnParams } from "@/typings/index.js";
+import { BaseParams, CaptchaSolver } from "@/typings/index.js";
 import { TwoCaptchaSolver } from "@/services/solvers/TwoCaptchaSolver.js";
 import { YesCaptchaSolver } from "@/services/solvers/YesCaptchaSolver.js";
 import { downloadAttachment } from "@/utils/download.js";
@@ -53,9 +53,8 @@ export class CaptchaService {
         jar: new CookieJar(),
         headers: {
             "Accept": "application/json, text/plain, */*",
-            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Accept-Encoding": "gzip, deflate, br",
             "Accept-Language": "en-US,en;q=0.9",
-            "Content-Type": "application/json",
             "Priority": "u=1, i",
             "Sec-Ch-Ua": `"Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"`,
             "Sec-Ch-Ua-Mobile": "?0",
@@ -103,20 +102,23 @@ export class CaptchaService {
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
                 "Priority": "u=0, i",
                 "Referer": "https://discord.com/",
+                "Content-Type": "application/json",
                 "Sec-Fetch-Dest": "document",
                 "Sec-Fetch-Mode": "navigate",
                 "Sec-Fetch-Site": "cross-site",
                 "Sec-Fetch-User": "?1",
                 "Upgrade-Insecure-Requests": "1",
             }
-        })
+        });
 
         const accountResponse = await this.axiosInstance.get("https://owobot.com/api/auth", {
             headers: {
                 "Origin": "https://owobot.com",
                 "Referer": "https://owobot.com/",
             }
-        })
+        });
+
+        logger.debug(accountResponse.data);
 
         if (accountResponse.data?.banned || !accountResponse.data?.captcha?.active) {
             throw new Error("Captcha is not active or account is banned.");
@@ -132,6 +134,7 @@ export class CaptchaService {
             headers: {
                 "Origin": "https://owobot.com",
                 "Referer": "https://owobot.com/captcha",
+                "Content-Type": "application/json",
             }
         });
 
