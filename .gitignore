@@ -2,5 +2,7 @@ node_modules
 package-lock.json
 pnpm-lock.yaml
 
+dest
 logs
 assets/music.mp3
+config.json

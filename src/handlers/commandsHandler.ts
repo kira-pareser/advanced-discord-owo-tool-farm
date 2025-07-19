@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 
-import { Schematic } from "@/structure/classes/Schematic.js";
+import { Schematic } from "@/structure/Schematic.js";
 import { logger } from "@/utils/logger.js";
 import { importDefault } from "@/utils/import.js";
 import { CommandProps } from "@/typings/index.js";

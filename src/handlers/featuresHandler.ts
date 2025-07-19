@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 
-import { Schematic } from "@/structure/classes/Schematic.js";
+import { Schematic } from "@/structure/Schematic.js";
 import { logger } from "@/utils/logger.js";
 import { importDefault } from "@/utils/import.js";
 import { FeatureProps } from "@/typings/index.js";
@@ -26,8 +26,8 @@ export default Schematic.registerHandler({
 			try {
 				const feature = await importDefault<FeatureProps>(filePath);
 				if (
-					!feature 
-					|| typeof feature !== "object" 
+					!feature
+					|| typeof feature !== "object"
 					|| !feature.name
 					|| !feature.condition
 					|| !feature.run

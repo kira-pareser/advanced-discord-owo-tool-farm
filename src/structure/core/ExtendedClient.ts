@@ -1,7 +1,8 @@
+import { Client, ClientOptions } from "discord.js-selfbot-v13";
+
 import { SendMessageOptions } from "@/typings/index.js";
 import { logger } from "@/utils/logger.js";
 import { ranInt } from "@/utils/math.js";
-import { Client, ClientOptions } from "discord.js-selfbot-v13";
 
 export class ExtendedClient<Ready extends boolean = boolean> extends Client<Ready> {
     constructor(options: ClientOptions = {}) {

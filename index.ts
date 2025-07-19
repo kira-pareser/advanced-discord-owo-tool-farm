@@ -1,22 +1,24 @@
 import { UpdateFeature } from "@/services/UpdateService.js";
-import { BaseAgent } from "@/structure/classes/BaseAgent.js";
-import { ExtendedClient } from "@/structure/classes/ExtendedClient.js";
-import { InquirerUI } from "@/structure/classes/InquirerUI.js";
-import { ConfigPrompter } from "@/structure/core/ConfigPrompter.js";
+import { BaseAgent } from "@/structure/BaseAgent.js";
+import { ExtendedClient } from "@/structure/core/ExtendedClient.js";
+import { InquirerUI } from "@/structure/InquirerUI.js";
 import { logger } from "@/utils/logger.js";
 import { confirm } from "@inquirer/prompts";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import packageJSON from "./package.json" with { type: "json" };
 
-process.title = "Advanced Discord OwO Tool Farm - Copyright 2025 © Elysia x Kyou Izumi";
+process.title = `Advanced Discord OwO Tool Farm v${packageJSON.version} - Copyright 2025 © Elysia x Kyou Izumi`;
 console.clear();
 
 const updateFeature = new UpdateFeature();
 const client = new ExtendedClient();
 
 const argv = await yargs(hideBin(process.argv))
-    .commandDir("src/cli", {
-        extensions: ["ts"],
+    .scriptName("adotf")
+    .usage("$0 <command> [options]")
+    .commandDir("./src/cli", {
+        extensions: ["ts", "js"],
     })
     .option("verbose", {
         alias: "v",
@@ -34,26 +36,30 @@ const argv = await yargs(hideBin(process.argv))
         alias: "l",
         type: "string",
         description: "Set the language for the application",
+        choices: ["en"],
         default: "en",
     })
     .help()
+    .epilogue(`For more information, visit ${packageJSON.homepage}`)
     .parse();
 
 logger.setLevel(argv.verbose || process.env.NODE_ENV === "development" ? "debug" : "sent");
 
-if (!argv.skipCheckUpdate) {
-    const updateAvailable = await updateFeature.checkForUpdates();
-    if (updateAvailable) {
-        const shouldUpdate = await confirm({
-            message: "An update is available. Do you want to update now?",
-            default: true,
-        });
-        if (shouldUpdate) {
-            await updateFeature.performUpdate();
+if (!argv._.length) {
+    if (!argv.skipCheckUpdate) {
+        const updateAvailable = await updateFeature.checkForUpdates();
+        if (updateAvailable) {
+            const shouldUpdate = await confirm({
+                message: "An update is available. Do you want to update now?",
+                default: true,
+            });
+            if (shouldUpdate) {
+                await updateFeature.performUpdate();
+            }
         }
+        await client.sleep(1000); // Wait for update to complete
     }
-    await client.sleep(1000); // Wait for update to complete
-}
 
-const { config } = await InquirerUI.prompt(client);
-await BaseAgent.initialize(client, config);
+    const { config } = await InquirerUI.prompt(client);
+    await BaseAgent.initialize(client, config);
+}

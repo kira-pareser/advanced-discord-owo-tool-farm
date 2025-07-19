@@ -1,7 +1,5 @@
-import { Schematic } from "@/structure/classes/Schematic.js";
-import { logger } from "@/utils/logger.js";
+import { Schematic } from "@/structure/Schematic.js";
 import { ranInt } from "@/utils/math.js";
-
 
 export default Schematic.registerFeature({
     name: "changeChannel",

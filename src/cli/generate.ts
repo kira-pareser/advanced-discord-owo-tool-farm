@@ -1,6 +1,7 @@
-import { Configuration } from "@/schemas/ConfigSchema.js";
 import fs from "node:fs";
 import path from "node:path";
+
+import { Configuration } from "@/schemas/ConfigSchema.js";
 
 export const command = "generate [filename]";
 export const desc = "Generate a new config file";

@@ -1,10 +1,12 @@
-import { Configuration } from "@/schemas/ConfigSchema.js";
-import { ConfigPrompter } from "../core/ConfigPrompter.js";
-import { ExtendedClient } from "./ExtendedClient.js";
-import { ConfigManager } from "../core/ConfigManager.js";
-import { logger } from "@/utils/logger.js";
 import path from "node:path";
 import fs from "node:fs";
+
+import { logger } from "@/utils/logger.js";
+import { Configuration } from "@/schemas/ConfigSchema.js";
+
+import { ConfigPrompter } from "./ConfigPrompter.js";
+import { ExtendedClient } from "./core/ExtendedClient.js";
+import { ConfigManager } from "./core/ConfigManager.js";
 
 export class InquirerUI {
     private static client: ExtendedClient<true>;

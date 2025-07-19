@@ -1,4 +1,4 @@
-import { Schematic } from "@/structure/classes/Schematic.js";
+import { Schematic } from "@/structure/Schematic.js";
 import { GuildTextBasedChannel } from "discord.js-selfbot-v13";
 
 export default Schematic.registerCommand({
@@ -6,7 +6,7 @@ export default Schematic.registerCommand({
     description: "commands.say.description",
     usage: "say [#channel|channelId] <message>",
     execute: async ({ agent, message, t, args }) => {
-        if (!args.length) {
+        if (!args || !args.length) {
             return message.reply({
                 content: t("commands.say.noMessage")
             });
@@ -14,25 +14,25 @@ export default Schematic.registerCommand({
 
         let targetChannel = agent.activeChannel;
         let messageContent = args.join(" ");
-        
+
         // Check if first argument is a channel mention or channel ID
         const firstArg = args[0];
         if (firstArg) {
             const channelMention = firstArg.match(/^<#(\d+)>$/);
             const channelId = channelMention ? channelMention[1] : firstArg;
-            
+
             // Try to find the channel
             if (channelId && /^\d+$/.test(channelId)) {
                 const channel = message.guild?.channels.cache.get(channelId);
                 if (channel && channel.isText()) {
-                    if( !channel.permissionsFor(agent.client.user!)?.has("SEND_MESSAGES")) {
-                        return message.reply(t("commands.say.noPermission"));
+                    if (!channel.permissionsFor(agent.client.user!)?.has("SEND_MESSAGES")) {
+                        return message.reply(t("commands.errors.noPermission"));
                     }
 
                     targetChannel = channel;
                     // Remove the channel argument from the message content
                     messageContent = args.slice(1).join(" ");
-                    
+
                     if (!messageContent.trim()) {
                         return message.reply({
                             content: t("commands.say.noMessage")
@@ -44,7 +44,7 @@ export default Schematic.registerCommand({
 
         if (!targetChannel) {
             return message.reply({
-                content: t("commands.say.invalidChannel")
+                content: t("commands.errors.invalidChannel")
             });
         }
 

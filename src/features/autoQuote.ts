@@ -1,4 +1,4 @@
-import { Schematic } from "@/structure/classes/Schematic.js";
+import { Schematic } from "@/structure/Schematic.js";
 import { ranInt } from "@/utils/math.js";
 import { quotes } from "@/utils/quotes.js";
 

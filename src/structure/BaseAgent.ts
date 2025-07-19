@@ -1,24 +1,33 @@
-import { ClientEvents, Collection, GuildMember, GuildTextBasedChannel, Message, User } from "discord.js-selfbot-v13";
+import { ClientEvents, Collection, GuildTextBasedChannel, Message, RichPresence } from "discord.js-selfbot-v13";
 
-import path from "path";
+import path from "node:path";
 
-import { ExtendedClient } from "./ExtendedClient.js";
-import { CooldownManager } from "../core/CooldownManager.js";
 import { ranInt } from "@/utils/math.js";
 import { logger } from "@/utils/logger.js";
 import { watchConfig } from "@/utils/watcher.js";
+import {
+    AwaitResponseOptions,
+    AwaitSlashResponseOptions,
+    CommandProps,
+    FeatureProps,
+    SendMessageOptions
+} from "@/typings/index.js";
 
-import { AwaitResponseOptions, AwaitSlashResponseOptions, CommandProps, FeatureProps, SendMessageOptions } from "@/typings/index.js";
 import { Configuration } from "@/schemas/ConfigSchema.js";
 import featuresHandler from "@/handlers/featuresHandler.js";
-import { i18n } from "@/utils/locales.js";
+import { t, locale } from "@/utils/locales.js";
 import { shuffleArray } from "@/utils/array.js";
 import commandsHandler from "@/handlers/commandsHandler.js";
 import eventsHandler from "@/handlers/eventsHandler.js";
 
+import { ExtendedClient } from "./core/ExtendedClient.js";
+import { CooldownManager } from "./core/CooldownManager.js";
+import { fileURLToPath } from "node:url";
+import { CriticalEventHandler } from "@/handlers/CriticalEventHandler.js";
 
 export class BaseAgent {
-    public readonly rootDir = path.join(process.cwd(), "src");
+    public readonly rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
     public readonly miraiID = "1205422490969579530"
 
     public readonly client: ExtendedClient<true>;
@@ -41,7 +50,7 @@ export class BaseAgent {
     public totalTexts = 0;
 
     private invalidResponseCount = 0;
-    private invalidResponseThreshold = 5; // Threshold for invalid responses before auto-terminating the agent
+    private invalidResponseThreshold = 5;
 
     gem1Cache?: number[];
     gem2Cache?: number[];
@@ -49,15 +58,17 @@ export class BaseAgent {
     starCache?: number[];
 
     public channelChangeThreshold = ranInt(17, 56);
-    public autoSleepThreshold = ranInt(82, 400); // Default threshold for auto-sleep
+    public autoSleepThreshold = ranInt(82, 400);
     public lastSleepAt = 0;
 
     public captchaDetected = false;
+    private farmLoopRunning = false;
+    private farmLoopPaused = false;
     private expectResponseOnAllAwaits = false;
 
     constructor(client: ExtendedClient<true>, config: Configuration) {
         this.client = client;
-        this.cache = structuredClone(config); // Clone the config to avoid direct mutations
+        this.cache = structuredClone(config);
         this.config = watchConfig(config, (key, oldValue, newValue) => {
             logger.debug(`Configuration updated: ${key} changed from ${oldValue} to ${newValue}`);
         })
@@ -69,11 +80,11 @@ export class BaseAgent {
 
         this.client.options.sweepers = {
             messages: {
-                interval: 60 * 60, // 1 hour
-                lifetime: 60 * 60 * 24, // 1 day
+                interval: 60 * 60,
+                lifetime: 60 * 60 * 24,
             },
             users: {
-                interval: 60 * 60, // 1 hour
+                interval: 60 * 60,
                 filter: () => (user) => this.authorizedUserIDs.includes(user.id),
             },
         }
@@ -177,7 +188,7 @@ export class BaseAgent {
                     resolve(undefined);
                 } else {
                     logger.debug(`Response received: ${collected.first()?.content.slice(0, 35)}...`);
-                    this.invalidResponseCount = 0; // Reset invalid response count on successful collection
+                    this.invalidResponseCount = 0;
                 }
             });
 
@@ -241,69 +252,140 @@ export class BaseAgent {
         return Promise.resolve(message);
     }
 
+    private loadPresence = () => {
+        const rpc = new RichPresence(this.client)
+            .setApplicationId(this.miraiID)
+            .setType("PLAYING")
+            .setName("Mirai Kuriyama")
+            .setDetails("The day the emperor returns!")
+            .setStartTimestamp(this.client.readyTimestamp)
+            .setAssetsLargeImage("1312264004382621706")
+            .setAssetsLargeText("Advanced Discord OwO Tool Farm")
+            .setAssetsSmallImage("1306938859552247848")
+            .setAssetsSmallText("Copyright © Kyou-Izumi 2025")
+            .addButton("GitHub", "https://github.com/Kyou-Izumi/advanced-discord-owo-tool-farm")
+            .addButton("YouTube", "https://www.youtube.com/@daongotau")
+
+        this.client.user.setPresence({ activities: [rpc] });
+    }
+
+    public pauseFarmLoop = () => {
+        this.farmLoopPaused = true;
+        logger.info("Farm loop has been paused.");
+    }
+
+    public resumeFarmLoop = () => {
+        this.farmLoopPaused = false;
+        logger.info("Farm loop has been resumed.");
+
+        if (!this.farmLoopRunning) {
+            this.farmLoop();
+        }
+    }
+
+    public isFarmLoopPaused = (): boolean => {
+        return this.farmLoopPaused;
+    }
+
     public farmLoop = async () => {
-        const featureKeys = Array.from(this.features.keys());
-        if (featureKeys.length === 0) {
-            logger.warn("No features available to run. Please ensure features are loaded correctly.");
+        if (this.farmLoopRunning) {
+            logger.debug("Double farm loop detected, skipping this iteration.");
             return;
         }
 
-        for (const featureKey of shuffleArray(featureKeys)) {
-            if (this.captchaDetected) {
-                logger.debug("Captcha detected, skipping feature execution.");
+        if (this.farmLoopPaused) {
+            logger.debug("Farm loop is paused, skipping this iteration.");
+            return;
+        }
+
+        this.farmLoopRunning = true;
+
+        try {
+            const featureKeys = Array.from(this.features.keys());
+            if (featureKeys.length === 0) {
+                logger.warn("No features available to run. Please ensure features are loaded correctly.");
                 return;
             }
 
-            const botStatus = await this.isBotOnline();
-            if (!botStatus) {
-                logger.warn("OwO bot offline status detected, expecting response on all awaits.");
-                this.expectResponseOnAllAwaits = true;
-            } else {
-                this.expectResponseOnAllAwaits = false;
+            for (const featureKey of shuffleArray(featureKeys)) {
+                if (this.captchaDetected) {
+                    logger.debug("Captcha detected, skipping feature execution.");
+                    return;
+                }
+
+                const botStatus = await this.isBotOnline();
+                if (!botStatus) {
+                    logger.warn("OwO bot offline status detected, expecting response on all awaits.");
+                    this.expectResponseOnAllAwaits = true;
+                } else {
+                    this.expectResponseOnAllAwaits = false;
+                }
+
+                const feature = this.features.get(featureKey);
+                if (!feature) {
+                    logger.warn(`Feature ${featureKey} not found in features collection.`);
+                    continue;
+                }
+
+                try {
+                    const shouldRun = await feature.condition({ agent: this, t, locale })
+                        && this.cooldownManager.onCooldown("feature", feature.name) === 0;
+                    if (!shouldRun) continue;
+
+                    const res = await feature.run({ agent: this, t, locale });
+                    this.cooldownManager.set(
+                        "feature", feature.name,
+                        typeof res === "number" && !isNaN(res) ? res : feature.cooldown() || 30_000
+                    );
+                    await this.client.sleep(ranInt(500, 1600));
+                } catch (error) {
+                    logger.error(`Error running feature ${feature.name}:`);
+                    logger.error(error as Error);
+                }
             }
 
-            const feature = this.features.get(featureKey);
-            if (!feature) {
-                logger.warn(`Feature ${featureKey} not found in features collection.`);
-                continue;
+            if (!this.captchaDetected && !this.farmLoopPaused) {
+                setTimeout(() => {
+                    this.farmLoop();
+                }, ranInt(1000, 5000));
             }
 
-            try {
-                const internationalization = i18n(process.env.LOCALE);
-                const shouldRun = await feature.condition({ agent: this, ...internationalization })
-                    && this.cooldownManager.onCooldown("feature", feature.name) === 0;
-                if (!shouldRun) continue;
-
-                const res = await feature.run({ agent: this, ...internationalization });
-                this.cooldownManager.set("feature", feature.name, res instanceof Number ? Number(res) : feature.cooldown() || 30_000);
-                await this.client.sleep(ranInt(500, 1600)); // Random sleep between feature runs
-            } catch (error) {
-                logger.error(`Error running feature ${feature.name}:`);
-                logger.error(error as Error);
-            }
+        } catch (error) {
+            logger.error("Error occurred during farm loop execution:");
+            logger.error(error as Error);
+        } finally {
+            this.farmLoopRunning = false;
         }
-        await this.client.sleep(ranInt(1000, 5000));
-        this.farmLoop();
     }
 
     private registerEvents = async () => {
-        const internationalization = i18n(process.env.LOCALE || "en");
+        CriticalEventHandler.handleRejection({
+            agent: this,
+            t,
+            locale,
+        })
+
         await featuresHandler.run({
             agent: this,
-            ...internationalization,
+            t,
+            locale,
         });
         logger.info(`Registered ${this.features.size} features.`);
 
         await commandsHandler.run({
             agent: this,
-            ...internationalization,
+            t,
+            locale,
         });
         logger.info(`Registered ${this.commands.size} commands.`);
 
         await eventsHandler.run({
             agent: this,
-            ...internationalization,
+            t,
+            locale,
         });
+
+        if(this.config.showRPC) this.loadPresence();
     }
 
     public static initialize = async (client: ExtendedClient<true>, config: Configuration) => {
@@ -317,6 +399,7 @@ export class BaseAgent {
 
         await agent.registerEvents();
         logger.debug("BaseAgent initialized successfully.");
+        logger.info(`Logged in as: ${client.user.username}`);
 
         agent.farmLoop();
     }

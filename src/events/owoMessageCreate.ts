@@ -1,6 +1,6 @@
 import { CriticalEventHandler } from "@/handlers/CriticalEventHandler.js";
 import { CaptchaService } from "@/services/CaptchaService.js";
-import { Schematic } from "@/structure/classes/Schematic.js";
+import { Schematic } from "@/structure/Schematic.js";
 import { NORMALIZE_REGEX } from "@/typings/constants.js";
 import { logger } from "@/utils/logger.js";
 

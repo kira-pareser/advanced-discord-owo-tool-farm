@@ -1,25 +1,41 @@
+import { NotificationService } from "@/services/NotificationService.js";
 import { FeatureFnParams } from "@/typings/index.js";
+import { t } from "@/utils/locales.js";
 import { logger } from "@/utils/logger.js";
 
 export class CriticalEventHandler {
-    public static handleRejection() {
+    public static handleRejection(params: FeatureFnParams) {
         process.on("unhandledRejection", (reason, promise) => {
             logger.runtime("Unhandled Rejection at:");
             logger.runtime(`Promise: ${promise}`);
             logger.runtime(`Reason: ${reason}`);
-            // Optionally, you can notify the user or log to a file
-            // consoleNotify("Unhandled Rejection", `Promise: ${promise}\nReason: ${reason}`);
         });
+
         process.on("uncaughtException", (error) => {
             logger.error("Uncaught Exception:");
             logger.error(error)
             // Optionally, you can notify the user or log to a file
             // consoleNotify("Uncaught Exception", `Error: ${error.message}\nStack: ${error.stack}`);
         });
+
+        process.on("SIGINT", () => {
+            logger.info(t("events.sigint"));
+            NotificationService.consoleNotify(params);
+            // Optionally, you can notify the user or log to a file
+            // consoleNotify("Stopping Selfbot", "Received SIGINT. Stopping selfbot...");
+            process.exit(0);
+        });
+
+        process.on("SIGTERM", () => {
+            logger.info(t("events.sigterm"));
+            NotificationService.consoleNotify(params);
+
+            process.exit(0);
+        });
     }
 
     public static handleBan({ t }: FeatureFnParams) {
-        logger.alert(`${t("logger.banned")}, ${t("logger.stop")}`);
+        logger.alert(`${t("status.banned")}, ${t("status.stop")}`);
         // consoleNotify(...)
         process.exit(-1);
     }

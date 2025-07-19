@@ -1,19 +1,127 @@
 {
+    "features": {
+        "autoClover": {
+            "noAdminID": "%s feature requires adminID to be set in config."
+        },
+        "autoHunt": {
+            "noGems": "No usable hunting gems found in inventory, disabling autoGem feature.",
+            "gemsFound": "Found %s types of usable hunting gems in Inventory."
+        },
+        "autoHuntbot": {
+            "stats": {
+                "huntbot": "Huntbot retrieved, current stats:",
+                "animals": "Animals: %s",
+                "essence": "Essence: %s",
+                "exp": "Experience: %s"
+            },
+            "huntbotSent": "Huntbot sent, estimated time: %s hours, %s minutes.",
+            "inHunting": "Huntbot is still hunting, estimated time left: %s hours, %s minutes.",
+            "errors": {
+                "noCaptchaAPI": "No captcha API configured, force using ADOTF's API for Huntbot.",
+                "invalidCaptchaResult": "Invalid captcha result (%s). Expected 5 letter characters."
+            }
+        },
+        "autoTrait": {
+            "essenceStatus": "Trait %s essence status: Current: %s, Required: %s, Available: %s",
+            "errors": {
+                "notEnoughEssence": "Not enough essence to upgrade trait, skipping upgrade.",
+                "noEssenceMatch": "Failed to parse essence for trait %s.",
+                "notFound": "Trait %s not found in huntbot embed."
+            }
+        },
+        "autoSleep": {
+            "sleeping": "Sleeping for %s after %s commands.",
+            "nextSleep": "Next sleep after %s commands for %s."
+        },
+        "errors": {
+            "noAdminID": "%s feature requires adminID to be set in config.",
+            "invalidAdminID": "The configured Admin ID is invalid . Please set a valid user ID.",
+            "unreachableAdmin": "The admin user is unreachable. Please check if the user exists and is not blocked."
+        }
+    },
     "commands": {
         "ping": {
-            "description": "Check the bot's latency",
-            "pong": "Latency: **%s**ms (WebSocket: **%s**ms)"
+            "description": "Check the tool's latency",
+            "response": "Latency: **%s**ms (WebSocket: **%s**ms)"
         },
         "uptime": {
-            "description": "Check how long the bot has been running",
+            "description": "Check how long the tool has been running",
             "response": "Uptime: **%s**"
         },
         "say": {
-            "description": "Make the bot say something",
+            "description": "Make the tool say something",
             "noMessage": "You must provide a message to say.",
-            "success": "Message sent successfully.",
+            "success": "Message sent successfully."
+        },
+        "eval": {
+            "description": "Evaluate JavaScript code",
+            "noCode": "You must provide code to evaluate.",
+            "success": "Code evaluated successfully.\nType: **%s**\nTime taken: **%s**ms\nResult: ```js\n%s\n```",
+            "error": "Error evaluating code: ```js\n%s\n```",
+            "timeout": "Evaluation timed out after %s milliseconds."
+        },
+        "reload": {
+            "description": "Reload commands, features, or configuration",
+            "noTarget": "You must specify what to reload: `config`, `commands`, `features`, or `all`.",
+            "invalidTarget": "Invalid target specified. Please use `config`, `commands`, `features`, or `all`.",
+            "success": {
+                "config": "Successfully reloaded **configuration**.",
+                "commands": "Successfully reloaded **%s commands**.",
+                "features": "Successfully reloaded **%s features**.",
+                "all": "Successfully reloaded **everything**: config, %s commands, and %s features."
+            },
+            "error": "Error reloading %s: %s"
+        },
+        "stop": {
+            "description": "Stop and terminate the tool immediately",
+            "stopping": "🛑 **Stopping the tool...**",
+            "terminated": "✅ **Tool has been terminated successfully.**"
+        },
+        "pause": {
+            "description": "Pause the tool temporarily",
+            "success": "⏸️ **Tool has been paused.**",
+            "successWithTimeout": "⏸️ **Tool has been paused for %s.**",
+            "alreadyPaused": "⚠️ **Tool is already paused.**",
+            "invalidDuration": "❌ **Invalid duration format.** Use formats like `1h`, `30m`, `45s` (s=seconds, m=minutes, h=hours, d=days).",
+            "durationTooLong": "❌ **Duration too long.** Maximum pause duration is 24 hours.",
+            "autoResumed": "▶️ **Tool has been automatically resumed after timeout.**"
+        },
+        "resume": {
+            "description": "Resume the tool",
+            "success": "▶️ **Tool has been resumed.**",
+            "notPaused": "⚠️ **Tool is not currently paused.**"
+        },
+        "send": {
+            "description": "Send cowoncy to another user",
+            "noMessage": "❌ **You must provide a user and amount.** Usage: `send <user> <amount>`",
+            "invalidUser": "❌ **Invalid user specified.** Please mention a valid user.",
+            "invalidAmount": "❌ **Invalid amount specified.** Please provide a valid number.",
+            "success": "✅ **Successfully sent %s cowoncy to %s!**",
+            "error": "❌ **Error occurred while sending cowoncy:** %s"
+        },
+        "status": {
+            "description": "Current status of the tool",
+            "status": "Current status: **%s**\nUptime: **%s**\nTotal texts sent: **%s**\nTotal commands executed: **%s**\nTotal captchas solved: **%s**\nTotal captchas failed: **%s**"
+        },
+        "errors": {
+            "guildOnly": "❌ **This command can only be used in a server.**",
             "noPermission": "I do not have permission to send messages in that channel.",
-            "invalidChannel": "Invalid channel specified. Please provide a valid text channel ID."
+            "invalidChannel": "Invalid channel specified. Please provide a valid text channel ID.",
+            "noResponse": "⚠️ **No response from OwO bot.**"
+        }
+    },
+    "status": {
+        "terminated": "THE TOOL HAS BEEN TERMINATED",
+        "banned": "ACCOUNT HAS BEEN BANNED",
+        "resolved": "CAPTCHA HAS BEEN RESOLVED",
+        "stop": "STOPPING THE TOOL...",
+        "restart": "RESTARTING THE TOOL...",
+        "total": {
+            "texts": "Total texts sent: %s",
+            "commands": "Total commands sent: %s",
+            "uptime": "Total uptime: %s",
+            "captchaSolved": "Total captchas solved: %s",
+            "captchaFailed": "Total captchas failed: %s"
         }
     },
     "logger": {
@@ -26,20 +134,44 @@
             "data": "DATA",
             "sent": "SENT",
             "debug": "DEBUG"
-        },
-        "terminated": "SELFBOT HAS BEEN TERMINATED",
-        "banned": "ACCOUNT HAS BEEN BANNED",
-        "stop": "STOPPING SELFBOT...",
-        "total": {
-            "texts": "Total texts sent: %s",
-            "commands": "Total commands sent: %s",
-            "uptime": "Total uptime: %s",
-            "captchaSolved": "Total captchas solved: %s",
-            "captchaFailed": "Total captchas failed: %s"
         }
     },
     "captcha": {
-        "detected": "Captcha detected in channel: %s"
+        "detected": "Captcha detected in channel: %s",
+        "imageDetected": "Image captcha detected, attempting to solve... (Attempt %s/%s)",
+        "linkDetected": "Link captcha detected, attempting to solve... (Attempt %s/%s)",
+        "downloadingImage": "Downloading captcha image from %s",
+        "solutionFound": "Captcha solution: %s",
+        "reachingBot": "Attempting to reach OwO bot...",
+        "dmCreated": "DM channel created, sending captcha solution...",
+        "solvingHcaptcha": "Solving hCaptcha with sitekey: %s and siteurl: %s",
+        "hcaptchaToken": "hCaptcha response token: %s...",
+        "solvedSuccessfully": "Captcha solved successfully on attempt %s!",
+        "failedAttempt": "Failed to solve captcha on attempt %s:",
+        "retrying": "Retrying captcha solving after 3 seconds... (%s/%s)",
+        "allAttemptsFailed": "All %s attempts to solve captcha failed, waiting for manual resolution.",
+        "waitingForResolution": "WAITING FOR THE CAPTCHA TO BE RESOLVED TO %s...",
+        "errors": {
+            "solverNotConfigured": "Captcha solver is not configured.",
+            "apiNotConfigured": "Captcha API or API key not configured. Captcha handling will be disabled.",
+            "unknownProvider": "Unknown captcha provider: %s",
+            "noResponse": "No response from OwO bot after sending captcha solution.",
+            "captchaInactive": "Captcha is not active or account is banned.",
+            "verificationFailed": "Failed to verify captcha: %s"
+        },
+        "notifications": {
+            "title": "CAPTCHA DETECTED",
+            "resolved": "Status: ✅ RESOLVED",
+            "unresolved": "Status: ❌ **UNRESOLVED**",
+            "detectedInChannel": "Captcha detected in channel: <#%s>",
+            "fields": {
+                "captchaType": "Captcha Type",
+                "attempt": "Attempt",
+                "failedAttempts": "Failed Attempts",
+                "lastError": "Last Error",
+                "resolveManually": "Please resolve the captcha manually before"
+            }
+        }
     },
     "error": {
         "noresponse": "Number of no responses received from OwO bot exceeded the threshold %s.",
@@ -54,5 +186,10 @@
         "error": {
             "execution": "Error executing %s notifier: %s"
         }
+    },
+    "notification": {},
+    "events": {
+        "sigint": "Received SIGINT. Stopping selfbot...",
+        "sigterm": "Received SIGTERM. Stopping selfbot..."
     }
 }

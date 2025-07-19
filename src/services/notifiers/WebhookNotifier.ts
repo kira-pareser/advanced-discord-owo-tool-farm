@@ -8,7 +8,7 @@ import { MessageEmbed, WebhookClient } from "discord.js-selfbot-v13";
 
 export class WebhookNotifier implements NotifierStrategy {
     public async execute(
-        { agent, t }: FeatureFnParams,
+        { agent }: FeatureFnParams,
         payload: NotificationPayload
     ): Promise<void> {
         if (!agent.config.webhookURL) {
@@ -24,14 +24,6 @@ export class WebhookNotifier implements NotifierStrategy {
                 .setTitle(title)
                 .setURL(sourceUrl ?? "")
                 .setDescription(description)
-                // .addFields([
-                //     {
-                //         name: "Captcha type: ",
-                //         value: imageUrl
-                //             ? `[Image Captcha](${sourceUrl})`
-                //             : "[Link Captcha](https://owobot.com/captcha)",
-                //     },
-                // ])
                 .setColor(
                     urgency === "critical"
                         ? "#FF0000"
@@ -45,23 +37,10 @@ export class WebhookNotifier implements NotifierStrategy {
 
             if (imageUrl) embed.setImage(imageUrl);
             if (fields) embed.addFields(fields);
-            // if (error)
-            //     embed.addFields([
-            //         {
-            //             name: "Last error: ",
-            //             value: `\`${error instanceof Error ? error.message : String(error)}\``,
-            //         },
-            //     ]);
 
             await webhook.send({
-                username: "Advanced Discord OwO Tool Farm Notification",
+                username: "Captcha The Detective",
                 content,
-                // content:
-                //     (
-                //         agent.config.adminID && urgency !== "low"
-                //             ? `<@${agent.config.adminID}> ` : ""
-                //     )
-                //     + t("captcha.detected", sourceUrl || "N/A"),
                 avatarURL:
                     agent.client.user?.displayAvatarURL() ??
                     "https://i.imgur.com/9wrvM38.png",

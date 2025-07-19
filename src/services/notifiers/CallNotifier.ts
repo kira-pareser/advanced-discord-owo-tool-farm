@@ -1,10 +1,11 @@
 import { FeatureFnParams, NotificationPayload, NotifierStrategy } from "@/typings/index.js";
 import { logger } from "@/utils/logger.js";
+import { t } from "@/utils/locales.js";
 
 export class CallNotifier implements NotifierStrategy {
     async execute(params: FeatureFnParams, payload: NotificationPayload): Promise<void> {
-        const { agent, t } = params;
-        const { title, description, urgency, sourceUrl, imageUrl, content, fields } = payload;
+        const { agent } = params;
+        const { urgency } = payload;
 
         if (!agent.config.adminID) {
             logger.warn(t("error.adminID.notconfigured"));

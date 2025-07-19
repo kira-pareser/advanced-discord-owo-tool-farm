@@ -1,11 +1,18 @@
-import { BaseAgent } from "@/structure/classes/BaseAgent.ts";
-import { ExtendedClient } from "@/structure/classes/ExtendedClient.ts";
+import type {
+    Client,
+    ClientEvents,
+    GuildTextBasedChannel,
+    Message,
+    PermissionResolvable,
+    TextBasedChannel,
+    UserResolvable
+} from "discord.js-selfbot-v13";
+
+import { BaseAgent } from "@/structure/BaseAgent.ts";
+import { ExtendedClient } from "@/structure/core/ExtendedClient.ts";
 import type { I18nPath, Locale, Translationfn } from "@/utils/locales.ts";
-import type { Client, ClientEvents, GuildTextBasedChannel, Message, PermissionResolvable, TextBasedChannel, UserResolvable } from "discord.js-selfbot-v13";
 
 export type MaybePromise<T> = T | Promise<T>;
-
-export type ParameterType = string | GuildMember | User | Channel | Role;
 
 export interface CaptchaSolver {
     /**
@@ -54,8 +61,10 @@ interface BaseParams {
 
 export interface CommandParams extends BaseParams {
     message: Message
-    args: Array<string | undefined>;
-    // params: { [key: string]: string | undefined };
+    args?: Array<string>;
+    options?: {
+        guildOnly?: boolean;
+    }
 }
 
 type CommandOptions<InGuild extends boolean = boolean> = {
@@ -69,14 +78,14 @@ export interface CommandProps {
     description: I18nPath;
     aliases?: string[];
     usage?: string;
-    
+
     options?: CommandOptions;
     params?: Map<string, any>;
     subCommandAliases?: Map<string, string>;
     execute: (args: CommandParams) => MaybePromise<unknown>;
 }
 
-interface HandlerParams extends BaseParams {}
+interface HandlerParams extends BaseParams { }
 
 type HandlerProps = {
     run: (args: HandlerParams) => MaybePromise;

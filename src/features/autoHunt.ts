@@ -1,6 +1,6 @@
 import { Message } from "discord.js-selfbot-v13";
 
-import { Schematic } from "@/structure/classes/Schematic.js";
+import { Schematic } from "@/structure/Schematic.js";
 import { logger } from "@/utils/logger.js";
 
 import { FeatureFnParams } from "@/typings/index.js";
@@ -23,8 +23,8 @@ const GEM_TIERS = {
     fabled: [57, 71, 78, 85],
 }
 
-const useGems = async (param1: FeatureFnParams, huntMsg: Message) => {
-    const { agent, t, locale } = param1;
+const useGems = async (params: FeatureFnParams, huntMsg: Message) => {
+    const { agent, t } = params;
 
     const invMsg = await agent.awaitResponse({
         trigger: () => agent.send("inv"),
@@ -48,7 +48,7 @@ const useGems = async (param1: FeatureFnParams, huntMsg: Message) => {
         // After opening, re-run the hunt to get an accurate state.
         logger.debug("Lootboxes opened, re-running useGems logic to check inventory again.");
         await agent.client.sleep(ranInt(5000, 10000)); // Wait a bit for the lootbox to open
-        await useGems(param1, huntMsg);
+        await useGems(params, huntMsg);
         return;
     }
 
@@ -72,12 +72,12 @@ const useGems = async (param1: FeatureFnParams, huntMsg: Message) => {
 
     const totalGems = agent.gem1Cache.length + agent.gem2Cache.length + agent.gem3Cache.length + agent.starCache.length;
     if (totalGems === 0) {
-        logger.info("No usable hunting gems found in inventory.");
+        logger.info(t("features.autoHunt.noGems"));
         agent.config.autoGem = 0; // Disable feature if no gems are left
         return;
     }
 
-    logger.info(`Found ${totalGems} types of usable hunting gems in Inventory.`);
+    logger.info(t("features.autoHunt.gemsFound", totalGems));
 
     const gemsToUse: number[] = []
 
@@ -95,7 +95,7 @@ const useGems = async (param1: FeatureFnParams, huntMsg: Message) => {
     }
 
     if (gemsToUse.length === 0) {
-        logger.info("No usable gems found for the hunt.");
+        logger.info(t("features.autoHunt.noGems"));
         return;
     }
 

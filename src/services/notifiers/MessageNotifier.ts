@@ -1,9 +1,10 @@
 import { FeatureFnParams, NotificationPayload, NotifierStrategy } from "@/typings/index.js";
+import { t } from "@/utils/locales.js";
 import { logger } from "@/utils/logger.js";
 
 
 export class MessageNotifier implements NotifierStrategy {
-    public async execute({ agent, t }: FeatureFnParams, payload: NotificationPayload): Promise<void> {
+    public async execute({ agent }: FeatureFnParams, payload: NotificationPayload): Promise<void> {
         if (!agent.config.adminID) {
             logger.warn(t("error.adminID.notconfigured"));
             return;

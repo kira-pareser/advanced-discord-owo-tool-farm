@@ -1,11 +1,12 @@
-import { FeatureFnParams, NotificationPayload, NotifierStrategy } from "@/typings/index.js";
+import { BaseParams, FeatureFnParams, NotificationPayload, NotifierStrategy } from "@/typings/index.js";
 import { logger } from "@/utils/logger.js";
 import { WebhookNotifier } from "./notifiers/WebhookNotifier.js";
 import { MessageNotifier } from "./notifiers/MessageNotifier.js";
 import { CallNotifier } from "./notifiers/CallNotifier.js";
 import { SoundNotifier } from "./notifiers/SoundNotifier.js";
 import { PopupNotifier } from "./notifiers/PopupNotifier.js";
-import { formatTime } from "@/utils/date.js";
+import { formatTime } from "@/utils/time.js";
+import { t } from "@/utils/locales.js";
 
 export class NotificationService {
     private strategies: Map<string, NotifierStrategy>;
@@ -42,11 +43,11 @@ export class NotificationService {
         await Promise.all(notificationPromises);
     }
 
-    public static consoleNotify({ agent, t }: FeatureFnParams): void {
-        logger.data(t("logger.total.texts", agent.totalTexts));
-        logger.data(t("logger.total.commands", agent.totalCommands));
-        logger.data(t("logger.total.captchaSolved", agent.totalCaptchaSolved));
-        logger.data(t("logger.total.captchaFailed", agent.totalCaptchaFailed));
-        logger.data(t("logger.total.uptime", formatTime(agent.client.readyTimestamp, Date.now())));
+    public static consoleNotify({ agent }: BaseParams): void {
+        logger.data(t("status.total.texts", agent.totalTexts));
+        logger.data(t("status.total.commands", agent.totalCommands));
+        logger.data(t("status.total.captchaSolved", agent.totalCaptchaSolved));
+        logger.data(t("status.total.captchaFailed", agent.totalCaptchaFailed));
+        logger.data(t("status.total.uptime", formatTime(agent.client.readyTimestamp, Date.now())));
     }
 }

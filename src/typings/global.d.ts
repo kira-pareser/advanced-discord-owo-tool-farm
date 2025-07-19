@@ -1,6 +1,5 @@
 import type { Locale } from "@/utils/locales.ts";
 
-
 declare global {
     const LOCALE: Locale;
     namespace NodeJS {

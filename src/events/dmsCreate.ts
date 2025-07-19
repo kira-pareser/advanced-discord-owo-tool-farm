@@ -1,4 +1,4 @@
-import { Schematic } from "@/structure/classes/Schematic.js";
+import { Schematic } from "@/structure/Schematic.js";
 
 
 export default Schematic.registerEvent({

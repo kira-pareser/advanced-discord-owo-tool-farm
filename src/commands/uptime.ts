@@ -1,5 +1,5 @@
-import { Schematic } from "@/structure/classes/Schematic.js";
-import { formatTime } from "@/utils/date.js";
+import { Schematic } from "@/structure/Schematic.js";
+import { formatTime } from "@/utils/time.js";
 
 
 export default Schematic.registerCommand({

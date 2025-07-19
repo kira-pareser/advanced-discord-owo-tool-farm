@@ -1,5 +1,5 @@
 import { Configuration } from "@/schemas/ConfigSchema.js";
-import { CaptchaSolver, FeatureFnParams } from "@/typings/index.js";
+import { BaseParams, CaptchaSolver, FeatureFnParams } from "@/typings/index.js";
 import { TwoCaptchaSolver } from "@/services/solvers/TwoCaptchaSolver.js";
 import { YesCaptchaSolver } from "@/services/solvers/YesCaptchaSolver.js";
 import { downloadAttachment } from "@/utils/download.js";
@@ -140,19 +140,26 @@ export class CaptchaService {
         }
     }
 
-    public static async handleCaptcha(params: FeatureFnParams, message: Message): Promise<void> {
-        const { agent, t, locale } = params;
+    public static async handleCaptcha(params: BaseParams, message: Message, retries: number = 0): Promise<void> {
+        const { agent } = params;
         const normalizedContent = message.content.normalize("NFC").replace(NORMALIZE_REGEX, "");
+        const maxRetries = 1;
 
-        const captchaService = new CaptchaService(agent.config);
+        const captchaService = new CaptchaService({
+            provider: agent.config.captchaAPI,
+            apiKey: agent.config.apiKey,
+        });
         const notificationService = new NotificationService();
 
-        NotificationService.consoleNotify(params)
+        // Only notify on first attempt
+        if (retries === 0) {
+            NotificationService.consoleNotify(params);
+        }
 
         try {
             const attachmentUrl = message.attachments.first()?.url;
             if (attachmentUrl) {
-                logger.debug("Image captcha detected, attempting to solve...");
+                logger.debug(`Image captcha detected, attempting to solve... (Attempt ${retries + 1}/${maxRetries + 1})`);
                 const solution = await captchaService.solveImageCaptcha(attachmentUrl);
 
                 logger.debug(`Attempting reach OwO bot...`);
@@ -164,7 +171,8 @@ export class CaptchaService {
                 const captchaResponse = await agent.awaitResponse({
                     channel: dms,
                     filter: (msg) => msg.author.id == agent.owoID && /verified that you are.{1,3}human!/igm.test(msg.content),
-                    trigger: async () => dms.send(solution)
+                    trigger: async () => dms.send(solution),
+                    time: 30_000
                 });
 
                 if (!captchaResponse) {
@@ -178,10 +186,16 @@ export class CaptchaService {
                     && /(https?:\/\/[^\s]+)/g.test(((message.components[0] as MessageActionRow).components[0] as MessageButton).url || "")
                 )
             ) {
+                logger.debug(`Link captcha detected, attempting to solve... (Attempt ${retries + 1}/${maxRetries + 1})`);
                 const { location } = await agent.client.authorizeURL("https://discord.com/oauth2/authorize?response_type=code&redirect_uri=https%3A%2F%2Fowobot.com%2Fapi%2Fauth%2Fdiscord%2Fredirect&scope=identify%20guilds%20email%20guilds.members.read&client_id=408785106942164992")
                 await captchaService.solveHcaptcha(location);
             }
+
+            // If we reach here, captcha was solved successfully
             agent.totalCaptchaSolved++;
+            logger.info(`Captcha solved successfully on attempt ${retries + 1}!`);
+
+            // Only notify on successful resolution
             await notificationService.notify(params, {
                 title: "CAPTCHA DETECTED",
                 description: "Status: ✅ RESOLVED",
@@ -197,14 +211,28 @@ export class CaptchaService {
                             : "[Link Captcha](https://owobot.com/captcha)",
                         inline: true
                     },
+                    {
+                        name: "Attempt",
+                        value: `${retries + 1}/${maxRetries + 1}`,
+                        inline: true
+                    }
                 ]
             });
         } catch (error) {
-            logger.error("Failed to solve captcha:");
+            logger.error(`Failed to solve captcha on attempt ${retries + 1}:`);
             logger.error(error as Error);
-            logger.alert("Attempt to solve captcha failed, waiting for manual resolution.");
+
+            // Retry logic
+            if (retries < maxRetries) {
+                logger.warn(`Retrying captcha solving after 3 seconds... (${retries + 1}/${maxRetries})`);
+                await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds before retry
+                return CaptchaService.handleCaptcha(params, message, retries + 1);
+            }
+
+            // Max retries reached, give up - only notify on complete failure
+            logger.alert(`All ${maxRetries + 1} attempts to solve captcha failed, waiting for manual resolution.`);
             logger.info(`WAITING FOR THE CAPTCHA TO BE RESOLVED TO ${agent.config.autoResume ? "RESTART" : "STOP"}...`);
-            
+
             agent.totalCaptchaFailed++;
             await notificationService.notify(params, {
                 title: "CAPTCHA DETECTED",
@@ -219,6 +247,11 @@ export class CaptchaService {
                         value: message.attachments.first()
                             ? `[Image Captcha](${message.attachments.first()?.url})`
                             : "[Link Captcha](https://owobot.com/captcha)",
+                        inline: true
+                    },
+                    {
+                        name: "Failed Attempts",
+                        value: `${maxRetries + 1}/${maxRetries + 1}`,
                         inline: true
                     },
                     {

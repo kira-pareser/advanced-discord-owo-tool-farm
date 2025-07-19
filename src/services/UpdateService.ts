@@ -1,15 +1,16 @@
-import fs from "node:fs";
-import path from "node:path";
-import os from "node:os";
-import { execSync, exec, spawn } from "node:child_process";
-import { promisify } from "node:util";
-
 import axios from "axios";
 import AdmZip from "adm-zip";
 
-import { copyDirectory } from "../utils/path.js";
-import { logger } from "@/utils/logger.js";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import { promisify } from "node:util";
+import { execSync, exec, spawn } from "node:child_process";
+
 import packageJSON from "#/package.json" with { type: "json" };
+import { logger } from "@/utils/logger.js";
+import { copyDirectory } from "../utils/path.js";
+import { downloadAndExtractRepo } from "@/utils/download.js";
 
 export class UpdateFeature {
     private baseHeaders = {
@@ -55,18 +56,12 @@ export class UpdateFeature {
 
     private manualUpdate = async () => {
         try {
-            const res = await axios.get(
+            const extractedFolderName = await downloadAndExtractRepo(
                 "https://github.com/Kyou-Izumi/advanced-discord-owo-tool-farm/archive/refs/heads/main.zip",
-                {
-                    responseType: "arraybuffer",
-                    headers: this.baseHeaders
-                }
+                os.tmpdir()
             );
-
-            const zip = new AdmZip(res.data);
-            zip.extractAllTo(os.tmpdir(), true);
-            const tempFolder = path.join(os.tmpdir(), zip.getEntries()[0].entryName);
-            copyDirectory(tempFolder, process.cwd());
+            const extractedPath = path.join(os.tmpdir(), extractedFolderName);
+            copyDirectory(extractedPath, process.cwd());
         } catch (error) {
             logger.error("Error updating project manually:");
             logger.error(String(error));

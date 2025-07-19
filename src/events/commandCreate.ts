@@ -1,4 +1,4 @@
-import { Schematic } from "@/structure/classes/Schematic.js";
+import { Schematic } from "@/structure/Schematic.js";
 import { CommandProps } from "@/typings/index.js";
 import { logger } from "@/utils/logger.js";
 

@@ -1,18 +1,17 @@
-import { Configuration } from "@/schemas/ConfigSchema.js";
+import { Collection, Guild } from "discord.js-selfbot-v13";
 import { checkbox, input, select, Separator } from "@inquirer/prompts";
 import axios from "axios";
-import { Collection, Guild } from "discord.js-selfbot-v13";
+import chalk from "chalk";
 
 import fs from "node:fs"
 import path from "node:path";
-import { ExtendedClient } from "../classes/ExtendedClient.js";
-import chalk from "chalk";
-import { BasePrompter } from "../classes/BasePrompter.js";
-import { ConfigManager } from "./ConfigManager.js";
+
+import { Configuration } from "@/schemas/ConfigSchema.js";
+import { ExtendedClient } from "./core/ExtendedClient.js";
+import { BasePrompter } from "./core/BasePrompter.js";
 
 type ConfigPrompterOptions = {
     client: ExtendedClient<true>;
-    // config: Partial<Configuration>;
     getConfig: () => Partial<Configuration>
 };
 
@@ -53,6 +52,7 @@ export class ConfigPrompter extends BasePrompter {
         this.ask(input, {
             message: "Enter your Discord token:",
             validate: (input) => input.split(".").length === 3 || "Invalid token format",
+            transformer: (input) => input.replace(/"|'/g, "").trim(),
         })
 
     public listActions = (hasCache: boolean): Promise<"run" | "edit" | "export" | "delete"> =>
@@ -167,7 +167,7 @@ export class ConfigPrompter extends BasePrompter {
                 if (id === this.client.user.id) return "You cannot set yourself for receiving Cookie/Clover/Notifications (DMs/Call).";
                 // if (!this.config.wayNotify?.some(w => (<Configuration["wayNotify"]>["call", "dms"]).includes(w))) {
                 if (
-                    !this.config.autoClover 
+                    !this.config.autoClover
                     && !this.config.autoCookie
                     && !this.config.wayNotify?.some(w => (<Configuration["wayNotify"]>["call", "dms"]).includes(w))
                 ) {
@@ -348,7 +348,7 @@ export class ConfigPrompter extends BasePrompter {
             default: cache,
         });
 
-    public getHuntbotSolver = (cache?: boolean) => 
+    public getHuntbotSolver = (cache?: boolean) =>
         this.ask(select<boolean>, {
             message: "Select Huntbot solver: ",
             choices: [
@@ -356,15 +356,13 @@ export class ConfigPrompter extends BasePrompter {
                     name: "Provided Captcha API: " + (this.config.captchaAPI || "None"),
                     value: false,
                     disabled: !this.config.captchaAPI && "You did not set a captcha API provider",
-                    checked: cache === false
                 },
                 {
                     name: "Our ADOTF's API (currently free and supports Huntbot captchas)",
                     value: true,
-                    checked: cache === true
                 }
             ],
-            
+            default: cache,
         });
 
     public getPrayCurse = (cache?: Configuration["autoPray"]) =>

@@ -1,6 +1,25 @@
-import { DataManager } from "./DataManager.js";
 import { ConfigSchema, Configuration } from "@/schemas/ConfigSchema.js";
 
+import { DataManager } from "./DataManager.js";
+
+/**
+ * Manages application configuration data, providing methods to load, retrieve, update, and delete configuration entries.
+ * 
+ * The `ConfigManager` class interacts with a `DataManager` to persist configuration data and uses a schema (`ConfigSchema`)
+ * to validate configuration objects. All configuration entries are stored in-memory and changes are automatically saved.
+ *
+ * @example
+ * const manager = new ConfigManager();
+ * manager.set('user123', { enabled: true });
+ * const config = manager.get('user123');
+ * manager.delete('user123');
+ *
+ * @remarks
+ * - All configuration values are validated against `ConfigSchema` before being stored.
+ * - Changes are persisted immediately after set or delete operations.
+ *
+ * @public
+ */
 export class ConfigManager {
     private dataManager = new DataManager();
     private configs: Record<string, Configuration> = {};

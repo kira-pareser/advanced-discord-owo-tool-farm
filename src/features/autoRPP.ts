@@ -1,4 +1,4 @@
-import { Schematic } from "@/structure/classes/Schematic.js";
+import { Schematic } from "@/structure/Schematic.js";
 import { ranInt } from "@/utils/math.js";
 
 
@@ -17,7 +17,7 @@ export default Schematic.registerFeature({
             trigger: () => agent.send(command),
             filter: (m) => m.author.id == agent.owoID
                 && (
-                    m.content.startsWith("🚫 **|** ") 
+                    m.content.startsWith("🚫 **|** ")
                     || m.content.startsWith(":no_entry_sign: **|** ")
                 ),
         })

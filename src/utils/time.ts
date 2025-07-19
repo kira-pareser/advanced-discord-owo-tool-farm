@@ -21,3 +21,32 @@ export const formatTime = (startTimestamp: number, endTimestamp: number): string
     const pad = (n: number) => String(n).padStart(2, "0");
     return `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 };
+
+/**
+ * Parses a time string with a unit suffix (e.g., "10s", "5m", "2h", "1d") and converts it to milliseconds.
+ *
+ * @param timeStr - The time string to parse. Must be in the format of a number followed by a unit ('s', 'm', 'h', or 'd').
+ * @returns The equivalent time in milliseconds, or `null` if the input is invalid.
+ *
+ * @example
+ * parseTimeString("10s"); // returns 10000
+ * parseTimeString("5m");  // returns 300000
+ * parseTimeString("2h");  // returns 7200000
+ * parseTimeString("1d");  // returns 86400000
+ * parseTimeString("invalid"); // returns null
+ */
+export const parseTimeString = (timeStr: string): number | null => {
+    const match = timeStr.match(/^(\d+)([smhd])$/i);
+    if (!match) return null;
+
+    const [, value, unit] = match;
+    const num = parseInt(value, 10);
+
+    switch (unit.toLowerCase()) {
+        case 's': return num * 1000;           // seconds
+        case 'm': return num * 60 * 1000;      // minutes
+        case 'h': return num * 60 * 60 * 1000; // hours
+        case 'd': return num * 24 * 60 * 60 * 1000; // days
+        default: return null;
+    }
+}

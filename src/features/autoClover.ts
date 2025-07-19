@@ -1,4 +1,4 @@
-import { Schematic } from "@/structure/classes/Schematic.js";
+import { Schematic } from "@/structure/Schematic.js";
 
 export default Schematic.registerFeature({
     name: "autoClover",
@@ -6,11 +6,18 @@ export default Schematic.registerFeature({
         const date = new Date();
         return date.setDate(date.getDate() + 1) - Date.now();
     },
-    condition: async ({ agent: { config } }) => {
-        if (!config.autoClover) return false;
-        if (!config.adminID) {
-            console.warn("autoClover feature requires adminID to be set in config.");
-            config.autoClover = false; // Disable autoClover if adminID is not set
+    condition: async ({ agent, t }) => {
+        if (!agent.config.autoClover) return false;
+        if (!agent.config.adminID) {
+            console.warn(t("features.errors.noAdminID", { feature: "autoClover" }));
+            agent.config.autoClover = false;
+            return false;
+        }
+
+        const admin = agent.client.users.cache.get(agent.config.adminID);
+        if (!admin || admin.id === admin.client.user?.id) {
+            console.warn(t("features.errors.invalidAdminID", { feature: "autoClover" }));
+            agent.config.autoClover = false;
             return false;
         }
 

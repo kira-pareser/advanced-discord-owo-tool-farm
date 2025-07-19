@@ -1,4 +1,5 @@
 import { CommandProps, EventOptions, FeatureProps, HandlerProps } from "@/typings/index.js";
+
 import { ClientEvents } from "discord.js-selfbot-v13";
 
 export class Schematic {

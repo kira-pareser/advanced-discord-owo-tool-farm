@@ -1,11 +1,12 @@
 import { EmbedField } from "discord.js-selfbot-v13";
 
 import { Configuration } from "@/schemas/ConfigSchema.js";
-import { Schematic } from "@/structure/classes/Schematic.js";
+import { Schematic } from "@/structure/Schematic.js";
 import { FeatureFnParams } from "@/typings/index.js";
 import { logger } from "@/utils/logger.js";
 import { ranInt } from "@/utils/math.js";
 import { CaptchaService } from "@/services/CaptchaService.js";
+import { t } from "@/utils/locales.js";
 
 type Trait = Exclude<Configuration["autoTrait"], undefined>;
 
@@ -27,10 +28,10 @@ const solvePassword = async (attachmentUrl: string, options: SolvePasswordOption
         const isValidResult = /^\w{5}$/.test(result);
 
         if (!isValidResult) {
-            logger.warn(`Invalid captcha result (${result}). Expected 5 alphanumeric characters.`);
+            logger.warn(t("features.autoHuntbot.errors.invalidCaptchaResult", { result }));
             return undefined;
         }
-        logger.data(`Captcha solved: ${result}`);
+        logger.data(t("captcha.solutionFound", { result }));
         return result;
     }
 
@@ -52,7 +53,7 @@ const solvePassword = async (attachmentUrl: string, options: SolvePasswordOption
             avgConfidence: string;
         };
 
-        logger.data(`Captcha solved: ${res.result} (Confidence: ${res.avgConfidence})`);
+        logger.data(t("captcha.solutionFound", { result: res.result, avgConfidence: res.avgConfidence }));
         return res.result;
     } catch (error) {
         logger.error("Failed to parse captcha response:");
@@ -71,11 +72,6 @@ const upgradeTrait = async ({ agent, t }: FeatureFnParams, trait: Trait, fields:
 
     let essence = parseInt(essenceField.name.match(/Animal Essence - `([\d,]+)`/i)?.[1].replace(/,/g, "") || "0");
 
-    if (essence < 1000) {
-        logger.info("Not enough essence to upgrade trait, skipping upgrade.");
-        return;
-    }
-
     const traitField = fields.find(f => f.name.toLowerCase().includes(trait));
 
     if (!traitField) {
@@ -85,17 +81,17 @@ const upgradeTrait = async ({ agent, t }: FeatureFnParams, trait: Trait, fields:
 
     const essenceMatch = traitField.value.match(/\[(\d+)\/(\d+)]/);
     if (!essenceMatch) {
-        logger.debug(`Failed to parse essence for trait ${trait}`);
+        logger.debug(t("features.autoTrait.errors.noEssenceMatch", trait));
         return;
     }
 
     const currentEssence = parseInt(essenceMatch[1] || "0");
     const requiredEssence = parseInt(essenceMatch[2] || "0");
     const missingEssence = requiredEssence - currentEssence;
+    logger.data(t("features.autoTrait.essenceStatus", trait, currentEssence, requiredEssence, missingEssence));
 
     if (missingEssence > essence) {
-        logger.info(`Not enough essence to upgrade ${trait}, skipping upgrade.`);
-        logger.data(`Current: ${currentEssence}, Required: ${requiredEssence}, Available: ${essence}`);
+        logger.info(t("features.autoTrait.errors.notEnoughEssence"));
         return;
     } else {
         await agent.send(`upgrade ${trait} level`);
@@ -133,10 +129,10 @@ export default Schematic.registerFeature({
             const statsRegex = /BACK WITH (\d+) ANIMALS,`\n(?:.|\n)*?`(\d+) ESSENCE, AND (\d+) EXPERIENCE/;
             const statsMatch = huntbotMsg.content.match(statsRegex);
 
-            logger.info("Huntbot retrieved, current stats:");
-            logger.data(`Animals: ${statsMatch?.[1] || "unknown"}`);
-            logger.data(`Essence: ${statsMatch?.[2] || "unknown"}`);
-            logger.data(`Experience: ${statsMatch?.[3] || "unknown"}`);
+            logger.info(t("features.autoHuntbot.stats.huntbot"));
+            logger.data(t("features.autoHuntbot.stats.animals", statsMatch?.[1] || "unknown"));
+            logger.data(t("features.autoHuntbot.stats.essence", statsMatch?.[2] || "unknown"));
+            logger.data(t("features.autoHuntbot.stats.exp", statsMatch?.[3] || "unknown"));
 
             return 30_000; // Retry in 30 seconds if no embed found
         }
@@ -188,7 +184,7 @@ export default Schematic.registerFeature({
             const hours = parseInt(matchTime?.[2] || "0");
             const minutes = parseInt(matchTime?.[3] || "10");
 
-            logger.info(`Huntbot is still hunting, estimated time left: ${hours} hours, ${minutes} minutes.`);
+            logger.info(t("features.autoHuntbot.inHunting", { hours, minutes }));
             return hours * 60 * 60 * 1000 + minutes * 60 * 1000 + ranInt(0, 5 * 60 * 1000); // Add random upto 5 mins
         }
 
@@ -202,10 +198,10 @@ export default Schematic.registerFeature({
                 apiKey: agent.config.apiKey
             });
         } else {
-            password = await solvePassword(attachmentUrl, options);
             if (!agent.config.useAdotfAPI) {
-                logger.warn("No captcha API configured, force using ADOTF's API for Huntbot.");
+                logger.warn(t("features.autoHuntbot.errors.noCaptchaAPI"));
             }
+            password = await solvePassword(attachmentUrl, options);
         }
 
         if (!password) return;
@@ -224,7 +220,7 @@ export default Schematic.registerFeature({
         const hours = parseInt(matchTime?.[2] || "0");
         const minutes = parseInt(matchTime?.[3] || "10");
 
-        logger.info(`Huntbot sent, estimated time: ${hours} hours, ${minutes} minutes.`);
+        logger.info(t("features.autoHuntbot.huntbotSent", hours, minutes));
 
         return hours * 60 * 60 * 1000
             + minutes * 60 * 1000
