@@ -120,8 +120,12 @@ export class CaptchaService {
 
         logger.debug(accountResponse.data);
 
-        if (accountResponse.data?.banned || !accountResponse.data?.captcha?.active) {
-            throw new Error("Captcha is not active or account is banned.");
+        if (accountResponse.data?.banned) {
+            throw new Error("Account is banned.");
+        }
+
+        if (!accountResponse.data?.captcha?.active) {
+            throw new Error("Captcha is not active.");
         }
 
         logger.debug(`Solving hCaptcha with sitekey: ${sitekey} and siteurl: ${siteurl}`);
