@@ -14,18 +14,16 @@ export default Schematic.registerFeature({
     run: async ({ agent }) => {
         const command = agent.config.autoPray[Math.floor(Math.random() * agent.config.autoPray.length)];
 
-        return agent.send(command)
+        const check = await agent.awaitResponse({
+            trigger: () => agent.send(command),
+            filter: (m) => m.author.id == agent.owoID
+                && m.content.includes(m.guild?.members.me?.displayName!)
+                && m.content.includes("I could not find that user!"),
+        });
 
-        // const check = await agent.awaitResponse({
-        //     trigger: () => agent.send(command),
-        //     filter: (m) => m.author.id == agent.owoID
-        //         && m.content.includes(m.guild?.members.me?.displayName!)
-        //         && m.content.includes("I could not find that user!"),
-        // });
-
-        // if (check) {
-        //     logger.warn("Admin not found in the server, removing command from autoPray list.");
-        //     agent.config.autoPray = agent.config.autoPray.filter(c => c !== command);
-        // }
+        if (check) {
+            logger.warn("Admin not found in the server, removing command from autoPray list.");
+            agent.config.autoPray = agent.config.autoPray.filter(c => c !== command);
+        }
     }
 })
