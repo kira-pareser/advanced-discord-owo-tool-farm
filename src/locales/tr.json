@@ -1,0 +1,196 @@
+{
+    "features": {
+        "autoClover": {
+            "noAdminID": "%s özelliği adminID gerekiyor, ayarlardan ayarlaman gerek."
+        },
+        "autoHunt": {
+            "noGems": "Envanterde kullanılabilir mücevher bulunamadı, autoGem özelliği devre dışı bırakılıyor.",
+            "gemsFound": "Envanterde %s türde kullanılabilir mücevher bulundu."
+        },
+        "autoHuntbot": {
+            "stats": {
+                "huntbot": "Huntbot tamamlandı, şuanki istatistikler:",
+                "animals": "Hayvanlar: %s",
+                "essence": "Puan: %s",
+                "exp": "Seviye: %s"
+            },
+            "huntbotSent": "Huntbot gönderildi, kalan zaman: %s saat, %s dakika.",
+            "inHunting": "Huntbot hala görevde, kalan zaman: %s saat, %s dakika.",
+            "errors": {
+                "noCaptchaAPI": "Ayarlarda captcha API belirtilmemiş, Huntbot için ADOTF's API kullanılacak.",
+                "invalidCaptchaResult": "Geçersiz captcha sonucu (%s)."
+            }
+        },
+        "autoTrait": {
+            "essenceStatus": "Yükseltme: %s, Durum: Şuanda: %s, Gerekli: %s, Mevcut: %s",
+            "errors": {
+                "notEnoughEssence": "Yükseltme için yeteri kada puan bulunamadı, geçiliyor...",
+                "noEssenceMatch": "Yükseltme için veri ayrıştırılamadı: %s.",
+                "notFound": "%s yükseltmesi için veri bulunamadı."
+            }
+        },
+        "autoSleep": {
+            "sleeping": "%s beklencek, %s komut sonra.",
+            "nextSleep": "Sonraki bekleme %s, %s komut sonra."
+        },
+        "errors": {
+            "noAdminID": "%s özelliği adminID gerekiyor, ayarlardan ayarlaman gerek.",
+            "invalidAdminID": "Ayarladığın adminID geçersiz. Lütfen geçerli bir ID belirtin.",
+            "unreachableAdmin": "Ayarladığın adminID kullanıcısına ulaşılamıyor. Kullanıcının var olduğuna ve yasaklamadığından emin misin."
+        }
+    },
+    "commands": {
+        "ping": {
+            "description": "Aracın gecikmesini ölç",
+            "response": "Gecikme: **%s**ms (WebSocket: **%s**ms)"
+        },
+        "uptime": {
+            "description": "Aracın ne kadar süredir çalıştığını kontrol edin",
+            "response": "Çalışma süresi: **%s**"
+        },
+        "say": {
+            "description": "Aracın bir şeyler söylemesini sağlayın",
+            "noMessage": "Söylemek için bir mesaj sağlamalısınız.",
+            "success": "Mesaj başarıyla gönderildi."
+        },
+        "eval": {
+            "description": "JavaScript kodunu çalıştır",
+            "noCode": "Çalıştırmak için kod belirtin.",
+            "success": "Başarıyla kod çalıştı:\nTür: **%s**\nGeçen süre: **%s**ms\nSonuç: ```js\n%s\n```",
+            "error": "Kod çalıştırırken hata oluştu: ```js\n%s\n```",
+            "timeout": "Kod %s ms süreyi geçerek zaman aşımına uğradı."
+        },
+        "reload": {
+            "description": "Tüm komutları, özellikleri ya da ayarları yenile",
+            "noTarget": "Hangi veriyi yenileyeceğini belirmen lazım: `config(ayarlar)`, `commands(komutlar)`, `features(özellikler)`, ya da `all(hepsi)`.",
+            "invalidTarget": "Geçersiz veri. Lütfen `config`, `commands`, `features`, ya da `all` verilerinden birini seçin.",
+            "success": {
+                "config": "Başarıyla **ayarları** yeniledin.",
+                "commands": "Başarıyla **%s komut** yenilendi.",
+                "features": "Başarıyla **%s özellik** yenilendi.",
+                "all": "Başarıyla **herşey** yenilendi: ayarlar, %s komut ve %s özellik."
+            },
+            "error": "%s Yenilenirken hata oluştu: %s"
+        },
+        "stop": {
+            "description": "Aracı hemen durdur ve kapat",
+            "stopping": "🛑 **Araç durduruluyor...**",
+            "terminated": "✅ **Araç başarıyla kaptıldı.**"
+        },
+        "pause": {
+            "description": "Aracı geçici olarak durdur",
+            "success": "⏸️ **Araç başarıyla durduruldu.**",
+            "successWithTimeout": "⏸️ **Araç başarıyla `%s` durduruldu.**",
+            "alreadyPaused": "⚠️ **Araç zaten durduruldu.**",
+            "invalidDuration": "❌ **Geçersiz süre formatı.**`1h`, `30m`, `45s` gibi formatlar kullanın (s=saniye, m=dakika, h=saat, d=gün).",
+            "durationTooLong": "❌ **Süre çok uzun.** Maximum durdurma süresü 24 saat.",
+            "autoResumed": "▶️ **Araç otomatik olarak devam ediyor.**"
+        },
+        "resume": {
+            "description": "Aracı devam ettirir",
+            "success": "▶️ **Araç başarıyla devam ediyor.**",
+            "notPaused": "⚠️ **Araç şu anda durdurulmuş değil.**"
+        },
+        "send": {
+            "description": "Başka kullanıcılara owo cash gönder",
+            "noMessage": "❌ **Bir kullanıcı ve miktar belirt.** Usage: `send <kullanıcı> <miktar>`",
+            "invalidUser": "❌ **Geçersiz kullanıcı belirtildi.** Lütfen geçerli bir kullanıcı belirt.",
+            "invalidAmount": "❌ **Geçersiz miktar belirtildi.** Lütfen geçerli bir süre belirt.",
+            "success": "✅ **Başarıyla %s cowoncy şu kullanıcıya göndeirildi: %s!**",
+            "error": "❌ **Cowoncy gönderirken hata oluştu:** %s"
+        },
+        "status": {
+            "description": "Aracın istatiklerini gösterir",
+            "status": "Şuanki duurm: **%s**\nÇalışma süresi: **%s**\nToplam mesaj gönderme: **%s**\nToplam komut gönderme: **%s**\nToplam başarılı doğrulama: **%s**\nToplam başarısız doğrulama: **%s**"
+        },
+        "errors": {
+            "guildOnly": "❌ **Bu komut yanlıza sunucularda çalıştırılabilir.**",
+            "noPermission": "Bu kanalda mesaj gönderme yetkim yok.",
+            "invalidChannel": "Geçersiz kanal seçildi, lütfen yazı kanalı seçin.",
+            "noResponse": "⚠️ **OwO bot yanıt göndermedi...**"
+        }
+    },
+    "status": {
+        "terminated": "ARAÇ KAPATILDI",
+        "banned": "HESAP YASAKLANDI",
+        "resolved": "DOĞRULAMA ÇÖZÜLDÜ",
+        "stop": "ARAÇ DURDURULUYOR...",
+        "restart": "ARAÇ YENIDEN BAŞLATILIYOR...",
+        "total": {
+            "texts": "Toplam mesaj: %s",
+            "commands": "Toplam komut: %s",
+            "uptime": "Çalışma süresi: %s",
+            "captchaSolved": "Toplam başarılı doğrulama: %s",
+            "captchaFailed": "Toplam başarısız doğrulama: %s"
+        }
+    },
+    "logger": {
+        "prefix": {
+            "alert": "UYARI",
+            "error": "HATA",
+            "runtime": "ÇALIŞMA",
+            "warn": "UYARI",
+            "info": "BILGİ",
+            "data": "VERİ",
+            "sent": "GÖNDERİLDİ",
+            "debug": "DEBUG"
+        }
+    },
+    "captcha": {
+        "detected": "%s kanalında doğrulama bulundu!",
+        "imageDetected": "Resim doğrulaması bulundu, çözülüyor... (%s/%s deneme)",
+        "linkDetected": ", çözülüyor... (%s/%s deneme)",
+        "downloadingImage": "Downloading captcha image from %s",
+        "solutionFound": "Doğrulama cevabı: %s",
+        "reachingBot": "OwO bota erişiliyor...",
+        "dmCreated": "Özel mesaj kanalı açıldı, doğrulama gönderildi...",
+        "solvingHcaptcha": "Doğrulama çözülüyor, sitekey: %s and siteurl: %s",
+        "hcaptchaToken": "hCaptcha sonucu, token: %s...",
+        "solvedSuccessfully": "Doğrulama %s denemeden sonra çözüldü!",
+        "failedAttempt": "Doğrulama %s denemesinde hata vardı:",
+        "retrying": "3 saniye sonra tekar deneniyor... (%s/%s)",
+        "allAttemptsFailed": "%s denemeden sonra doğrulama çözülemedi, manuel doğrulama bekleniyor...",
+        "waitingForResolution": "DOĞRULAMANIN %s DEN ÖNCE ÇÖZÜLMESİ BEKLENİYOR...",
+        "errors": {
+            "solverNotConfigured": "Doğrulama çözücü belirtilmedi.",
+            "apiNotConfigured": "Doğrulama api belirtilmedi. Doğrulama çözücü devre dışı bırakılıyor...",
+            "unknownProvider": "Bilinmeyen doğrulama sağlayıcısı: %s",
+            "noResponse": "Doğrulama çözüldükten sonra OwO bot yanıt vermdi.",
+            "captchaInactive": "Doğrulama aktif değil ya da yarragı yedin.",
+            "verificationFailed": "Doğrulama onaylanamadı: %s"
+        },
+        "notifications": {
+            "title": "DOĞRULAMA BULUNDU",
+            "resolved": "Durum: ✅ ÇÖZÜLDÜ",
+            "unresolved": "Durum: ❌ **ÇÖZÜLMEDİ**",
+            "detectedInChannel": "Doğrulamanın bulunduğu yer: <#%s>",
+            "fields": {
+                "captchaType": "Doğrulama türü",
+                "attempt": "Deneme",
+                "failedAttempts": "Başarısız Denemeler",
+                "lastError": "Son hata",
+                "resolveManually": "Lütfen doğrulamayı şu süreden önce çözün"
+            }
+        }
+    },
+    "error": {
+        "noresponse": "OwO botundan alınamayan sayısı sayısı sınırı aştı %s.",
+
+        "adminID": {
+            "notconfigured": "Admin ID ayarlarda bulunamadı. Mesaj almak için LÜTFEN belirtin.",
+            "invalid": "Geçersiz Admin ID. Lütfen geçerli bir ID belirtin.",
+            "unreachable": "Ayarladığın adminID kullanıcısına ulaşılamıyor. Kullanıcının var olduğuna ve yasaklamadığından emin misin?"
+        }
+    },
+    "notifier": {
+        "skip": "%s yürütmesi atlanıyor...",
+        "error": {
+            "execution": "%s yütütülürken hata oluştu, bildirim: %s"
+        }
+    },
+    "notification": {},
+    "events": {
+        "sigint": "SIGINT. Araç durduruluyor...",
+        "sigterm": "SIGTERM. Araç durdulruluyor..."
+    }
+}
