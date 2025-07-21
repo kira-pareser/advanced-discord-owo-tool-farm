@@ -18,8 +18,8 @@ const GEM_TIERS = {
     uncommon: [52, 66, 73, 80],
     rare: [53, 67, 74, 81],
     epic: [54, 68, 75, 82],
-    legendary: [55, 69, 76, 83],
-    mythical: [56, 70, 77, 84],
+    mythical: [55, 69, 76, 83],
+    legendary: [56, 70, 77, 84],
     fabled: [57, 71, 78, 85],
 }
 
