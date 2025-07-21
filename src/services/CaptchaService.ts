@@ -98,25 +98,21 @@ export class CaptchaService {
 
         // Step 1: Follow the OAuth redirect chain (this establishes the session)
         logger.debug("Step 1: Following OAuth redirect chain...");
-        try {
-            const oauthResponse = await this.axiosInstance.get(location, {
-                headers: {
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                    "Referer": "https://discord.com/",
-                    "Sec-Fetch-Dest": "document",
-                    "Sec-Fetch-Mode": "navigate",
-                    "Sec-Fetch-Site": "cross-site",
-                    "Sec-Fetch-User": "?1",
-                    "Upgrade-Insecure-Requests": "1",
-                    "Priority": "u=0, i"
-                },
-                maxRedirects: 10,
-                validateStatus: (status) => status < 400 // Accept redirects
-            });
-            logger.debug(`OAuth response status: ${oauthResponse.status}`);
-        } catch (error) {
-            logger.warn(`OAuth redirect failed, continuing anyway: ${error}`);
-        }
+        const oauthResponse = await this.axiosInstance.get(location, {
+            headers: {
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                "Referer": "https://discord.com/",
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "cross-site",
+                "Sec-Fetch-User": "?1",
+                "Upgrade-Insecure-Requests": "1",
+                "Priority": "u=0, i"
+            },
+            maxRedirects: 10,
+            validateStatus: (status) => status < 400 // Accept redirects
+        });
+        logger.debug(`OAuth response status: ${oauthResponse.status}`);
 
         // Step 2: Visit the captcha page explicitly
         logger.debug("Step 2: Visiting captcha page...");
@@ -169,7 +165,7 @@ export class CaptchaService {
         // Step 5: Submit the verification (matching your successful browser request exactly)
         logger.debug("Step 5: Submitting captcha verification...");
         const verificationResponse = await this.axiosInstance.post("https://owobot.com/api/captcha/verify", {
-            code: solution // Using "code" as per your successful browser request
+            token: solution // Using "code" as per your successful browser request
         }, {
             headers: {
                 "Accept": "application/json, text/plain, */*",
