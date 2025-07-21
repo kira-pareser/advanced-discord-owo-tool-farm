@@ -6,7 +6,7 @@ import { ranInt } from "@/utils/math.js";
 
 export default Schematic.registerFeature({
     name: "autoPray",
-    cooldown: () => ranInt(60 * 1000, 120 * 1000),
+    cooldown: () => ranInt(5 * 60 * 1000, 8 * 60 * 1000),
     condition: async ({ agent: { config } }) => {
         if (!config.autoPray || config.autoPray.length <= 0) return false;
 
