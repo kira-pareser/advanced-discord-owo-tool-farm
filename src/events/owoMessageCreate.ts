@@ -11,15 +11,16 @@ export default Schematic.registerEvent({
         const { agent, t, locale } = params;
 
         if (message.author.id !== agent.owoID) return;
-        if (
-            message.channel.type !== "DM"
-            && !message.content.includes(message.client.user?.id!)
-            && !message.content.includes(message.client.user?.username!)
-            && !message.content.includes(message.client.user?.displayName!)
-            && !message.content.includes(message.guild?.members.me?.displayName!)
-        ) return;
 
         const normalizedContent = message.content.normalize("NFC").replace(NORMALIZE_REGEX, "");
+
+        const isForThisUser = message.channel.type === "DM" || 
+            normalizedContent.includes(message.client.user?.id!) ||
+            normalizedContent.includes(message.client.user?.username!) ||
+            normalizedContent.includes(message.client.user?.displayName!) ||
+            normalizedContent.includes(message.guild?.members.me?.displayName!);
+
+        if (!isForThisUser) return;
 
         // 1. Check for Captcha
         if (/are you a real human|(check|verify) that you are.{1,3}human!/img.test(normalizedContent)) {

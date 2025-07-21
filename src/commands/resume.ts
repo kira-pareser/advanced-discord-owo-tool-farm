@@ -1,4 +1,5 @@
 import { Schematic } from "@/structure/Schematic.js";
+import { logger } from "@/utils/logger.js";
 
 export default Schematic.registerCommand({
     name: "resume",
@@ -6,13 +7,18 @@ export default Schematic.registerCommand({
     aliases: ["unpause"],
     usage: "resume",
     execute: async ({ agent, message, t }) => {
-        if (!agent.isFarmLoopPaused()) {
+        if (!agent.farmLoopPaused) {
             return message.reply({
                 content: t("commands.resume.notPaused")
             });
         }
 
-        agent.resumeFarmLoop();
+        agent.farmLoopPaused = false;
+        logger.info(t("logging.farmLoop.resumed"));
+
+        if (!agent.farmLoopRunning) {
+            agent.farmLoop();
+        }
 
         message.reply({
             content: t("commands.resume.success")

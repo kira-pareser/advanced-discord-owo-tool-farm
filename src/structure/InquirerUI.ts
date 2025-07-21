@@ -3,6 +3,7 @@ import fs from "node:fs";
 
 import { logger } from "@/utils/logger.js";
 import { Configuration } from "@/schemas/ConfigSchema.js";
+import { t } from "@/utils/locales.js";
 
 import { ConfigPrompter } from "./ConfigPrompter.js";
 import { ExtendedClient } from "./core/ExtendedClient.js";
@@ -49,17 +50,17 @@ export class InquirerUI {
         if (this.config.autoGem) {
             this.config.gemTier = await this.configPrompter.getGemTier(this.config.gemTier);
             this.config.autoLootbox = await this.configPrompter.trueFalse(
-                "Toggle Automatically Use Lootbox",
+                t("ui.toggleOptions.autoLootbox"),
                 this.config.autoLootbox
             );
             this.config.autoFabledLootbox = await this.configPrompter.trueFalse(
-                "Toggle Automatically Use Fabled Lootbox",
+                t("ui.toggleOptions.autoFabledLootbox"),
                 this.config.autoFabledLootbox
             );
         }
 
         this.config.autoHuntbot = await this.configPrompter.trueFalse(
-            "Toggle Automatically Send/Receive Huntbot",
+            t("ui.toggleOptions.autoHuntbot"),
             this.config.autoHuntbot
         );
 
@@ -69,11 +70,11 @@ export class InquirerUI {
         }
 
         this.config.autoCookie = await this.configPrompter.trueFalse(
-            "Toggle Automatically Send Cookie",
+            t("ui.toggleOptions.autoCookie"),
             this.config.autoCookie
         );
         this.config.autoClover = await this.configPrompter.trueFalse(
-            "Toggle Automatically Send Clover",
+            t("ui.toggleOptions.autoClover"),
             this.config.autoClover
         );
         if (
@@ -88,27 +89,31 @@ export class InquirerUI {
         this.config.autoRPP = await this.configPrompter.getRPPAction(this.config.autoRPP);
 
         this.config.autoDaily = await this.configPrompter.trueFalse(
-            "Toggle automatically claim daily rewards",
+            t("ui.toggleOptions.autoDaily"),
             this.config.autoDaily
         );
         this.config.autoSleep = await this.configPrompter.trueFalse(
-            "Toggle automatically pause randomly to avoid captcha",
+            t("ui.toggleOptions.autoSleep"),
             this.config.autoSleep
         );
         this.config.autoReload = await this.configPrompter.trueFalse(
-            "Toggle automatically reload config daily",
+            t("ui.toggleOptions.autoReload"),
             this.config.autoReload
         );
+        this.config.useCustomPrefix = await this.configPrompter.trueFalse(
+            t("ui.toggleOptions.useCustomPrefix"),
+            this.config.useCustomPrefix
+        );
         this.config.autoSell = await this.configPrompter.trueFalse(
-            "Toggle automatically sell animals once cash ran out",
+            t("ui.toggleOptions.autoSell"),
             this.config.autoSell
         );
         this.config.showRPC = await this.configPrompter.trueFalse(
-            "Toggle showing Discord Rich Presence",
+            t("ui.toggleOptions.showRPC"),
             this.config.showRPC
         );
         this.config.autoResume = await this.configPrompter.trueFalse(
-            "Toggle automatically resume after the captcha is solved",
+            t("ui.toggleOptions.autoResume"),
             this.config.autoResume
         );
     }
@@ -136,11 +141,11 @@ export class InquirerUI {
         }
 
         try {
-            logger.info("Checking account...");
+            logger.info(t("ui.messages.checkingAccount"));
             await client.checkAccount(this.config.token);
         } catch (error) {
             logger.error(error as Error);
-            logger.error("Invalid token or QR code. Please try again.");
+            logger.error(t("ui.messages.invalidToken"));
             process.exit(-1);
         }
 
@@ -154,19 +159,19 @@ export class InquirerUI {
             case "export":
                 const exportPath = path.join(process.cwd(), `${this.config.username || "unknown"}.json`);
                 fs.writeFileSync(exportPath, JSON.stringify(this.config, null, 2));
-                logger.info(`Configuration exported to: ${exportPath}`);
+                logger.info(t("ui.messages.configExported", { path: exportPath }));
                 process.exit(0);
             case "delete":
                 const confirm = await this.configPrompter.trueFalse(
-                    `Are you sure you want to delete the configuration for ${this.config.username}?`,
+                    t("ui.messages.confirmDelete", { username: this.config.username }),
                     false
                 );
                 if (confirm) {
                     this.configManager.delete(accountSelection);
-                    logger.info(`Configuration for ${this.config.username} deleted.`);
+                    logger.info(t("ui.messages.configDeleted", { username: this.config.username }));
                     process.exit(0);
                 } else {
-                    logger.info("Deletion cancelled.");
+                    logger.info(t("ui.messages.deletionCancelled"));
                     process.exit(0);
                 }
         }

@@ -30,20 +30,24 @@ export default Schematic.registerCommand({
                 maxStringLength: 500,
             });
             message.reply({
-                content: t("commands.eval.success",
-                    typeof result,
-                    Date.now() - startTime,
-                    output.slice(0, 1000)
-                ),
+                content: t("commands.eval.success", {
+                    type: typeof result,
+                    time: Date.now() - startTime,
+                    result: output.slice(0, 1000)
+                }),
             });
         } catch (error) {
-            if (error instanceof Error && error.message === 'Timeout') {
+            if (error instanceof Error && error.message === 'Execution timed out') {
                 message.reply({
-                    content: t("commands.eval.timeout", Date.now() - startTime)
+                    content: t("commands.eval.timeout", {
+                        timeout: Date.now() - startTime
+                    })
                 });
             } else {
                 message.reply({
-                    content: t("commands.eval.error", String(error).slice(0, 1000))
+                    content: t("commands.eval.error", {
+                        error: String(error).slice(0, 1000)
+                    })
                 });
             }
         }

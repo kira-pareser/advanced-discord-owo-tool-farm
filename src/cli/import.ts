@@ -40,9 +40,7 @@ export const handler = async (argv: { filename: string }) => {
         }
 
         logger.info("Configuration imported successfully");
-
-        // Create and start the bot with the imported config
-        logger.info("Starting bot with imported configuration...");
+        
         const client = new ExtendedClient();
         try {
             await client.checkAccount(validatedConfig.data.token);

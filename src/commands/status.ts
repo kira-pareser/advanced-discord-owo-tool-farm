@@ -10,15 +10,15 @@ export default Schematic.registerCommand({
     execute: async ({ agent, message, t, locale }) => {
         try {
             // Send the status message
-            await message.reply(t("commands.status.status",
-                agent.captchaDetected ? "🔴 Captcha Detected" 
-                : agent.isFarmLoopPaused() ? "🟡 Paused" : "🟢 Running",
-                formatTime(agent.client.readyTimestamp, Date.now()),
-                agent.totalTexts,
-                agent.totalCommands,
-                agent.totalCaptchaSolved,
-                agent.totalCaptchaFailed
-            ));
+            await message.reply(t("commands.status.status", {
+                status: agent.captchaDetected ? "🔴 Captcha Detected"
+                    : agent.farmLoopPaused ? "🟡 Paused" : "🟢 Running",
+                uptime: formatTime(agent.client.readyTimestamp, Date.now()),
+                texts: agent.totalTexts,
+                commands: agent.totalCommands,
+                captchasSolved: agent.totalCaptchaSolved,
+                captchasFailed: agent.totalCaptchaFailed
+            }));
         } catch (error) {
             logger.error("Error during status command execution:");
             logger.error(error as Error);

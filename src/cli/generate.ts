@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { Configuration } from "@/schemas/ConfigSchema.js";
+import { logger } from "@/utils/logger.js";
+import { t } from "@/utils/locales.js";
 
 export const command = "generate [filename]";
 export const desc = "Generate a new config file";
@@ -38,6 +40,7 @@ export const handler = async (argv: { filename: string }) => {
         autoDaily: true,
         autoCookie: true,
         autoClover: true,
+        useCustomPrefix: false,
         autoSell: true,
         autoSleep: true,
         autoReload: true,
@@ -48,10 +51,10 @@ export const handler = async (argv: { filename: string }) => {
     const filePath = path.resolve(process.cwd(), argv.filename);
 
     if (fs.existsSync(filePath)) {
-        console.error(`File ${filePath} already exists. Please choose a different filename.`);
+        logger.error(t("cli.generate.fileExists", { filePath }));
         return;
     }
-    
+
     fs.writeFileSync(filePath, JSON.stringify(configTemplate, null, 4));
-    console.log(`Config file generated at ${filePath}`);
+    logger.info(t("cli.generate.configGenerated", { filePath }));
 };

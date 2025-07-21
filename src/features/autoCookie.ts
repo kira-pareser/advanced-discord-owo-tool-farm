@@ -1,4 +1,5 @@
 import { Schematic } from "@/structure/Schematic.js";
+import { logger } from "@/utils/logger.js";
 
 export default Schematic.registerFeature({
 	name: "autoCookie",
@@ -9,14 +10,14 @@ export default Schematic.registerFeature({
 	condition: async ({ agent, t }) => {
 		if (!agent.config.autoCookie) return false;
 		if (!agent.config.adminID) {
-			console.warn(t("features.errors.noAdminID", { feature: "autoCookie" }));
+			logger.warn(t("features.common.errors.noAdminID", { feature: "autoCookie" }));
 			agent.config.autoCookie = false; // Disable autoCookie if adminID is not set
 			return false;
 		}
 
 		const admin = agent.client.users.cache.get(agent.config.adminID);
 		if (!admin || admin.id === admin.client.user?.id) {
-			console.warn(t("features.errors.invalidAdminID", { feature: "autoCookie" }));
+			logger.warn(t("features.common.errors.invalidAdminID", { feature: "autoCookie" }));
 			agent.config.autoCookie = false;
 			return false;
 		}

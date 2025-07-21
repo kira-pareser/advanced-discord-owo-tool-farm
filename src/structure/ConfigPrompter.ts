@@ -9,6 +9,7 @@ import path from "node:path";
 import { Configuration } from "@/schemas/ConfigSchema.js";
 import { ExtendedClient } from "./core/ExtendedClient.js";
 import { BasePrompter } from "./core/BasePrompter.js";
+import { t } from "@/utils/locales.js";
 
 type ConfigPrompterOptions = {
     client: ExtendedClient<true>;
@@ -36,47 +37,47 @@ export class ConfigPrompter extends BasePrompter {
 
     public listAccounts = (accounts: { username: string, id: string }[]): Promise<"qr" | "token" | string> =>
         this.ask(select<"qr" | "token" | string>, {
-            message: "Select an account: ",
+            message: t("ui.accounts.selectAccount"),
             choices: [
                 ...accounts.map(account => ({
                     name: account.username,
                     value: account.id
                 })),
                 new Separator(),
-                { name: "Login with a new token", value: "token" },
-                { name: "Login with QR code", value: "qr" },
+                { name: t("ui.accounts.loginNewToken"), value: "token" },
+                { name: t("ui.accounts.loginQR"), value: "qr" },
             ]
         });
 
     public getToken = () =>
         this.ask(input, {
-            message: "Enter your Discord token:",
-            validate: (input) => input.split(".").length === 3 || "Invalid token format",
+            message: t("ui.token.enterToken"),
+            validate: (input) => input.split(".").length === 3 || t("ui.token.invalidFormat"),
             transformer: (input) => input.replace(/"|'/g, "").trim(),
         })
 
     public listActions = (hasCache: boolean): Promise<"run" | "edit" | "export" | "delete"> =>
         this.ask(select<"run" | "edit" | "export" | "delete">, {
-            message: "Select an action: ",
+            message: t("ui.actions.selectAction"),
             choices: [
                 {
-                    name: "Run",
+                    name: t("ui.actions.run"),
                     value: "run",
-                    disabled: !hasCache && "No existing config found"
+                    disabled: !hasCache && t("ui.actions.noExistingConfig")
                 },
                 {
-                    name: "Edit Config",
+                    name: t("ui.actions.editConfig"),
                     value: "edit"
                 },
                 {
-                    name: "Export Config",
+                    name: t("ui.actions.exportConfig"),
                     value: "export",
-                    disabled: !hasCache && "No existing config found"
+                    disabled: !hasCache && t("ui.actions.noExistingConfig")
                 },
                 {
-                    name: "Delete Config",
+                    name: t("ui.actions.deleteConfig"),
                     value: "delete",
-                    disabled: !hasCache && "No existing config found"
+                    disabled: !hasCache && t("ui.actions.noExistingConfig")
                 },
             ],
         });
@@ -84,65 +85,65 @@ export class ConfigPrompter extends BasePrompter {
     // --- Core Config Prompts ---
     public listGuilds = (guilds: Collection<string, Guild>, cache?: string): Promise<Guild> =>
         this.ask(select<Guild>, {
-            message: "Select a guild to farm in: ",
+            message: t("ui.guild.selectGuild"),
             choices: guilds.map((g) => ({ name: g.name, value: g, })),
             default: cache ? guilds.get(cache) : undefined,
         });
 
     public listChannels = (guild: Guild, cache: string[] = []) =>
         this.ask(checkbox<string>, {
-            message: "Select channels to farm in (spacebar to select): ",
+            message: t("ui.channels.selectChannels"),
             choices: guild.channels.cache
                 .filter((c) => c.isText() && c.permissionsFor(guild.client.user!)?.has("SEND_MESSAGES"))
                 .map((c) => ({ name: c.name, value: c.id, checked: cache.includes(c.id) })),
-            validate: (choices) => choices.length > 0 || "You must select at least one channel.",
+            validate: (choices) => choices.length > 0 || t("ui.channels.mustSelectOne"),
         });
 
     public getWayNotify = (cache?: string[]): Promise<Configuration["wayNotify"]> =>
         this.ask(checkbox<Configuration["wayNotify"][number]>, {
-            message: "Select ways to send notifications (eg. when captcha is detected): ",
+            message: t("ui.notifications.selectWays"),
             choices: [
                 {
-                    name: "Webhook",
+                    name: t("ui.notifications.webhook"),
                     value: "webhook",
                     checked: cache?.includes("webhook"),
                 },
                 {
-                    name: "Direct Message (Friends Only)",
+                    name: t("ui.notifications.dms"),
                     value: "dms",
                     checked: cache?.includes("dms"),
                 },
                 {
-                    name: "Call (Friends Only)",
+                    name: t("ui.notifications.call"),
                     value: "call",
                     checked: cache?.includes("call"),
                 },
                 {
-                    name: "Music",
+                    name: t("ui.notifications.music"),
                     value: "music",
                     checked: cache?.includes("music"),
                 },
                 {
-                    name: "[BETA] Popup Notification",
+                    name: t("ui.notifications.popup"),
                     value: "popup",
                     checked: cache?.includes("popup"),
                 },
             ],
-        }, "Select how you want to receive notifications. You can select multiple options. Note that 'Call' and 'DMs' require the user to be a friend of the selfbot.");
+        }, t("ui.notifications.description"));
 
     public getWebhookURL = (cache?: string) =>
         this.ask(input, {
-            message: "Enter your Discord webhook URL: ",
+            message: t("ui.webhookURL.enterURL"),
             default: cache,
             validate: async (url) => {
                 if (!this.webhookRegex.test(url)) {
-                    return "Invalid webhook URL format.";
+                    return t("ui.webhookURL.invalidFormat");
                 }
                 try {
                     await axios.get(url);
                     return true;
                 } catch {
-                    return "Webhook URL is not accessible.";
+                    return t("ui.webhookURL.notAccessible");
                 }
             },
         });
@@ -153,46 +154,43 @@ export class ConfigPrompter extends BasePrompter {
             || this.config.autoClover;
 
         return this.ask(input, {
-            message: "Enter user ID you want to:\n"
-                + " + Use Selfbot commands (if prefix is set)\n"
-                + " + Receive Cookie (if autoCookie is enabled)\n"
-                + " + Receive Clover (if autoClover is enabled)\n"
-                + " + Receive Notifications on captcha detected\n"
-                + "Enter user ID" + (required === true ? ", empty to skip" : "") + ": ",
+            message: t("ui.adminID.enterUserID", {
+                required: required === true ? t("ui.adminID.emptyToSkip") : ""
+            }),
             default: cache,
             validate: async (id) => {
                 if (!id && !required) return true;
-                if (!/^\d{17,19}$/.test(id)) return "Invalid user ID format.";
+                if (!/^\d{17,19}$/.test(id)) return t("ui.adminID.invalidFormat");
                 if (!required) return true;
-                if (id === this.client.user.id) return "You cannot set yourself for receiving Cookie/Clover/Notifications (DMs/Call).";
-                // if (!this.config.wayNotify?.some(w => (<Configuration["wayNotify"]>["call", "dms"]).includes(w))) {
+                if (id === this.client.user.id) return t("ui.adminID.cannotSetSelf");
+
                 if (
                     !this.config.autoClover
                     && !this.config.autoCookie
                     && !this.config.wayNotify?.some(w => (<Configuration["wayNotify"]>["call", "dms"]).includes(w))
                 ) {
-                    return guild.members.cache.has(id) || "User is not a member of the selected guild.";
+                    return guild.members.cache.has(id) || t("ui.adminID.notMember");
                 }
 
                 const user = await this.client.users.fetch(id).catch(() => null);
-                if (!user) return "User not found.";
+                if (!user) return t("ui.adminID.userNotFound");
 
                 switch (user.relationship.toString()) {
                     case "NONE":
                         try {
                             await user.sendFriendRequest();
-                            return "Friend request sent. Please accept Selfbot's friend request to continue.";
+                            return t("ui.adminID.friendRequestSent");
                         } catch (error) {
-                            return "Failed to send friend request. Please do it manually or check your privacy settings and try again.";
+                            return t("ui.adminID.friendRequestFailed");
                         }
                     case "FRIEND":
                         return true;
                     case "PENDING_INCOMING":
-                        return await user.sendFriendRequest().catch(() => "Failed to accept friend request. Please do it manually.");
+                        return await user.sendFriendRequest().catch(() => t("ui.adminID.friendRequestAcceptFailed"));
                     case "PENDING_OUTGOING":
-                        return "Please accept Selfbot's friend request to continue.";
+                        return t("ui.adminID.acceptFriendRequest");
                     default:
-                        return "Either you or the user has blocked the other. Please unblock to continue.";
+                        return t("ui.adminID.blocked");
                 }
             },
         });
@@ -200,22 +198,22 @@ export class ConfigPrompter extends BasePrompter {
 
     public getMusicPath = (cache?: string) =>
         this.ask(input, {
-            message: "Enter the full path to your sound file (e.g., C:\\sounds\\alert.mp3): ",
+            message: t("ui.musicPath.enterPath"),
             default: cache,
             validate: (p) => {
                 if (!fs.existsSync(p)) {
-                    return "File does not exist.";
+                    return t("ui.musicPath.fileNotExist");
                 }
-                return this.audioRegex.test(path.extname(p)) ? true : "Invalid file format. Supported formats: mp3, wav, ogg, flac, aac, wma";
+                return this.audioRegex.test(path.extname(p)) ? true : t("ui.musicPath.invalidFormat");
             },
         });
 
     public getCaptchaAPI = (cache?: string) =>
         this.ask(select<Configuration["captchaAPI"]>, {
-            message: "Select a captcha solving provider (Selfbot will try 2 times): ",
+            message: t("ui.captchaAPI.selectProvider"),
             choices: [
                 {
-                    name: "Skip",
+                    name: t("ui.captchaAPI.skip"),
                     value: undefined
                 },
                 {
@@ -227,10 +225,10 @@ export class ConfigPrompter extends BasePrompter {
                     value: "yescaptcha",
                 },
                 {
-                    name: "Our ADOTF's API (coming soon)",
-                    description: "ADOTF: Advanced Discord Owo Tool Farm, currently only supports Huntbot captchas",
+                    name: t("ui.captchaAPI.adotfAPI"),
+                    description: t("ui.captchaAPI.adotfDescription"),
                     value: undefined,
-                    disabled: "This feature is not implemented yet."
+                    disabled: t("ui.captchaAPI.notImplemented")
                 }
             ],
             default: cache
@@ -238,35 +236,35 @@ export class ConfigPrompter extends BasePrompter {
 
     public getCaptchaAPIKey = (cache?: string) =>
         this.ask(input, {
-            message: "Enter your API key for the captcha solving service: ",
+            message: t("ui.captchaAPIKey.enterKey"),
             required: true,
             default: cache,
         });
 
     public getPrefix = (cache?: string) =>
         this.ask(input, {
-            message: "Enter your selfbot command Prefix, Empty to skip: ",
+            message: t("ui.prefix.enterPrefix"),
             validate: (answer: string) => {
                 if (!answer) return true;
-                return /^[^0-9\s]{1,5}$/.test(answer) ? true : "Invalid Prefix"
+                return /^[^0-9\s]{1,5}$/.test(answer) ? true : t("ui.prefix.invalidPrefix");
             },
             default: cache
         });
 
     public getGemUsage = (cache?: number) =>
         this.ask(select<Configuration["autoGem"]>, {
-            message: "Select how you want to use gems: ",
+            message: t("ui.gemUsage.selectUsage"),
             choices: [
                 {
-                    name: "Skip (Do not use gems)",
+                    name: t("ui.gemUsage.skip"),
                     value: 0
                 },
                 {
-                    name: "Fabled -> Common",
+                    name: t("ui.gemUsage.fabledToCommon"),
                     value: 1
                 },
                 {
-                    name: "Common -> Fabled",
+                    name: t("ui.gemUsage.commonToFabled"),
                     value: -1
                 }
             ],
@@ -275,41 +273,41 @@ export class ConfigPrompter extends BasePrompter {
 
     public getGemTier = (cache?: Configuration["gemTier"]) =>
         this.ask(checkbox<Exclude<Configuration["gemTier"], undefined>[number]>, {
-            validate: choices => choices.length > 0 || "You must select at least one gem tier.",
-            message: "Select gem tiers to use (spacebar to select): ",
+            validate: choices => choices.length > 0 || t("ui.gemTier.mustSelectOne"),
+            message: t("ui.gemTier.selectTiers"),
             choices: [
                 {
-                    name: "Common",
+                    name: t("ui.gemTier.common"),
                     value: "common",
                     checked: cache?.includes("common")
                 },
                 {
-                    name: "Uncommon",
+                    name: t("ui.gemTier.uncommon"),
                     value: "uncommon",
                     checked: cache?.includes("uncommon")
                 },
                 {
-                    name: "Rare",
+                    name: t("ui.gemTier.rare"),
                     value: "rare",
                     checked: cache?.includes("rare")
                 },
                 {
-                    name: "Epic",
+                    name: t("ui.gemTier.epic"),
                     value: "epic",
                     checked: cache?.includes("epic")
                 },
                 {
-                    name: "Mythical",
+                    name: t("ui.gemTier.mythical"),
                     value: "mythical",
                     checked: cache?.includes("mythical")
                 },
                 {
-                    name: "Legendary",
+                    name: t("ui.gemTier.legendary"),
                     value: "legendary",
                     checked: cache?.includes("legendary")
                 },
                 {
-                    name: "Fabled",
+                    name: t("ui.gemTier.fabled"),
                     value: "fabled",
                     checked: cache?.includes("fabled")
                 },
@@ -318,30 +316,30 @@ export class ConfigPrompter extends BasePrompter {
 
     public getTrait = (cache?: Configuration["autoTrait"]) =>
         this.ask(select<Configuration["autoTrait"]>, {
-            message: "Select a trait to use: ",
+            message: t("ui.trait.selectTrait"),
             choices: [
                 {
-                    name: "Efficiency",
+                    name: t("ui.trait.efficiency"),
                     value: "efficiency",
                 },
                 {
-                    name: "Duration",
+                    name: t("ui.trait.duration"),
                     value: "duration",
                 },
                 {
-                    name: "Cost",
+                    name: t("ui.trait.cost"),
                     value: "cost",
                 },
                 {
-                    name: "Gain",
+                    name: t("ui.trait.gain"),
                     value: "gain",
                 },
                 {
-                    name: "Experience",
+                    name: t("ui.trait.experience"),
                     value: "experience",
                 },
                 {
-                    name: "Radar",
+                    name: t("ui.trait.radar"),
                     value: "radar",
                 }
             ],
@@ -350,15 +348,15 @@ export class ConfigPrompter extends BasePrompter {
 
     public getHuntbotSolver = (cache?: boolean) =>
         this.ask(select<boolean>, {
-            message: "Select Huntbot solver: ",
+            message: t("ui.huntbotSolver.selectSolver"),
             choices: [
                 {
-                    name: "Provided Captcha API: " + (this.config.captchaAPI || "None"),
+                    name: t("ui.huntbotSolver.providedAPI", { api: this.config.captchaAPI || t("ui.huntbotSolver.noAPI") }),
                     value: false,
-                    disabled: !this.config.captchaAPI && "You did not set a captcha API provider",
+                    disabled: !this.config.captchaAPI && t("ui.huntbotSolver.noAPIDisabled"),
                 },
                 {
-                    name: "Our ADOTF's API (currently free and supports Huntbot captchas)",
+                    name: t("ui.huntbotSolver.adotfAPI"),
                     value: true,
                 }
             ],
@@ -367,26 +365,26 @@ export class ConfigPrompter extends BasePrompter {
 
     public getPrayCurse = (cache?: Configuration["autoPray"]) =>
         this.ask(checkbox<Configuration["autoPray"][number]>, {
-            message: "Select which pray/curses you want to auto use (spacebar to select): ",
+            message: t("ui.prayCurse.selectOptions"),
             choices: [
                 {
-                    name: "Pray selfbot account",
+                    name: t("ui.prayCurse.praySelf"),
                     value: `pray`,
                     checked: cache?.includes("pray")
                 },
                 {
-                    name: "Curse selfbot account",
+                    name: t("ui.prayCurse.curseSelf"),
                     value: `curse`,
                     checked: cache?.includes("curse")
                 },
                 ...(this.config.adminID ? [
                     {
-                        name: "Pray notification reception",
+                        name: t("ui.prayCurse.prayAdmin"),
                         value: `pray ${this.config.adminID}`,
                         checked: cache?.includes(`pray ${this.config.adminID}`)
                     },
                     {
-                        name: "Curse notification reception",
+                        name: t("ui.prayCurse.curseAdmin"),
                         value: `curse ${this.config.adminID}`,
                         checked: cache?.includes(`curse ${this.config.adminID}`)
                     }
@@ -396,15 +394,15 @@ export class ConfigPrompter extends BasePrompter {
 
     public getQuoteAction = (cache?: string[]) =>
         this.ask(checkbox<Configuration["autoQuote"][number]>, {
-            message: "Select which quote action you want to auto use (spacebar to select): ",
+            message: t("ui.quoteAction.selectActions"),
             choices: [
                 {
-                    name: "OwO",
+                    name: t("ui.quoteAction.owo"),
                     value: "owo",
                     checked: cache?.includes("owo")
                 },
                 {
-                    name: "Quote",
+                    name: t("ui.quoteAction.quote"),
                     value: "quote",
                     checked: cache?.includes("quote")
                 }
@@ -413,20 +411,20 @@ export class ConfigPrompter extends BasePrompter {
 
     public getRPPAction = (cache?: string[]) =>
         this.ask(checkbox<Configuration["autoRPP"][number]>, {
-            message: "Select which Run/Pup/Piku action you want to auto use (spacebar to select): ",
+            message: t("ui.rppAction.selectActions"),
             choices: [
                 {
-                    name: "Run",
+                    name: t("ui.rppAction.run"),
                     value: "run",
                     checked: cache?.includes("run")
                 },
                 {
-                    name: "Pup",
+                    name: t("ui.rppAction.pup"),
                     value: "pup",
                     checked: cache?.includes("pup")
                 },
                 {
-                    name: "Piku",
+                    name: t("ui.rppAction.piku"),
                     value: "piku",
                     checked: cache?.includes("piku")
                 }

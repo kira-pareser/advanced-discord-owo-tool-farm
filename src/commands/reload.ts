@@ -27,7 +27,7 @@ export default Schematic.registerCommand({
             logger.error(`Reload failed for ${target}:`);
             logger.error(error as Error);
             message.reply({
-                content: t("commands.reload.error", target, (error as Error).message)
+                content: t("commands.reload.error", { target, error: String(error).slice(0, 500) })
             });
         }
     }
@@ -41,11 +41,11 @@ async function executeReload(target: ReloadTarget, agent: any, params: any, t: a
 
         case "commands":
             await commandsHandler.run(params);
-            return t("commands.reload.success.commands", agent.commands.size);
+            return t("commands.reload.success.commands", { count: agent.commands.size });
 
         case "features":
             await featuresHandler.run(params);
-            return t("commands.reload.success.features", agent.features.size);
+            return t("commands.reload.success.features", { count: agent.features.size });
 
         case "all":
             await Promise.all([
@@ -53,7 +53,10 @@ async function executeReload(target: ReloadTarget, agent: any, params: any, t: a
                 featuresHandler.run(params),
                 Promise.resolve(agent.reloadConfig())
             ]);
-            return t("commands.reload.success.all", agent.commands.size, agent.features.size);
+            return t("commands.reload.success.all", {
+                commandCount: agent.commands.size,
+                featureCount: agent.features.size
+            });
 
         default:
             throw new Error(`Unknown target: ${target}`);

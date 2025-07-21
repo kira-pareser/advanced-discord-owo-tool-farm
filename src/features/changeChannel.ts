@@ -3,7 +3,7 @@ import { ranInt } from "@/utils/math.js";
 
 export default Schematic.registerFeature({
     name: "changeChannel",
-    cooldown: () => 5000,
+    cooldown: () => 5 * 60 * 1000,
     condition: async ({ agent }) => {
         if (agent.config.channelID.length <= 1) return false;
 

@@ -4,7 +4,7 @@ import { ranInt } from "@/utils/math.js";
 
 export default Schematic.registerFeature({
     name: "autoRPP",
-    cooldown: () => (60 + ranInt(0, 59)) * 1000,
+    cooldown: () => ranInt(60, 120) * 1000,
     condition: async ({ agent: { config } }) => {
         if (!config.autoRPP || config.autoRPP.length <= 0) return false;
 

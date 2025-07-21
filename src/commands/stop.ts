@@ -19,7 +19,7 @@ export default Schematic.registerCommand({
                 t,
                 locale
             });
-            logger.info(t("status.terminated"));
+            logger.info(t("status.states.terminated"));
 
             // Small delay to ensure message is sent
             setTimeout(() => {

@@ -5,7 +5,7 @@ export const ConfigSchema = z.object({
     token: z.string().refine(value => value.split(".").length === 3, {
         error: "Token must have three parts separated by dots"
     }),
-    guildID: z.string().optional(),
+    guildID: z.string(),
     channelID: z.array(z.string()).min(1, {
         error: "At least one channel ID is required"
     }),
@@ -15,14 +15,14 @@ export const ConfigSchema = z.object({
         "call",
         "music",
         "popup"
-    ])),
+    ])).default([]),
     webhookURL: z.url().optional(),
     adminID: z.string().optional(),
     musicPath: z.string().optional(),
     prefix: z.string().optional(),
     captchaAPI: z.enum(["2captcha", "yescaptcha"]).optional(),
     apiKey: z.string().optional(),
-    autoHuntbot: z.boolean(),
+    autoHuntbot: z.boolean().default(true),
     autoTrait: z.enum([
         "efficiency",
         "duration",
@@ -31,9 +31,9 @@ export const ConfigSchema = z.object({
         "experience",
         "radar"
     ]).optional(),
-    useAdotfAPI: z.boolean().optional(),
-    autoPray: z.array(z.string()),
-    autoGem: z.union([z.literal(0), z.literal(-1), z.literal(1)]),
+    useAdotfAPI: z.boolean().default(true).optional(),
+    autoPray: z.array(z.string()).default(["pray"]),
+    autoGem: z.union([z.literal(0), z.literal(-1), z.literal(1)]).default(0),
     gemTier: z.array(z.enum([
         "common",
         "uncommon",
@@ -49,26 +49,27 @@ export const ConfigSchema = z.object({
         "epic",
         "mythical",
     ]).optional(),
-    useSpecialGem: z.boolean().optional(),
-    autoLootbox: z.boolean().optional(),
-    autoFabledLootbox: z.boolean().optional(),
+    useSpecialGem: z.boolean().default(false).optional(),
+    autoLootbox: z.boolean().default(true).optional(),
+    autoFabledLootbox: z.boolean().default(false).optional(),
     autoQuote: z.array(z.enum([
         "owo",
         "quote"
-    ])),
+    ])).default(["owo"]),
     autoRPP: z.array(z.enum([
         "run",
         "pup",
         "piku"
-    ])),
-    autoDaily: z.boolean(),
-    autoCookie: z.boolean(),
-    autoClover: z.boolean(),
-    autoSell: z.boolean(),
-    autoSleep: z.boolean(),
-    autoReload: z.boolean(),
-    autoResume: z.boolean(),
-    showRPC: z.boolean()
+    ])).default(["run", "pup", "piku"]),
+    autoDaily: z.boolean().default(true),
+    autoCookie: z.boolean().default(true),
+    autoClover: z.boolean().default(true),
+    useCustomPrefix: z.boolean().default(true),
+    autoSleep: z.boolean().default(true),
+    autoSell: z.boolean().default(true),
+    autoReload: z.boolean().default(true),
+    autoResume: z.boolean().default(true),
+    showRPC: z.boolean().default(true),
 }).check(({ issues, value }) => {
     if (value.wayNotify.includes("webhook") && !value.webhookURL) {
         issues.push({
