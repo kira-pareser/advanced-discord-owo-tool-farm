@@ -134,7 +134,7 @@ export class BaseAgent {
         }
 
         this.client.sendMessage(content, options)
-        if (!!this.prefix) this.totalCommands++;
+        if (!!options.prefix) this.totalCommands++;
         else this.totalTexts++;
     }
 
