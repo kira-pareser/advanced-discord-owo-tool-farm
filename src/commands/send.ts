@@ -8,7 +8,7 @@ export default Schematic.registerCommand({
     execute: async ({ agent, message, t, args }) => {
         if (!message.guild) {
             return message.reply({
-                content: t("commands.errors.guildOnly")
+                content: t("commands.common.errors.guildOnly")
             });
         }
 
@@ -54,7 +54,7 @@ export default Schematic.registerCommand({
 
             if (!response) {
                 return message.reply({
-                    content: t("commands.errors.noResponse")
+                    content: t("commands.common.errors.noResponse")
                 });
             }
 
@@ -64,11 +64,11 @@ export default Schematic.registerCommand({
             await response.clickButton(button.customId);
 
             message.reply({
-                content: t("commands.send.success", amount, user)
+                content: t("commands.send.success", { amount, user })
             });
         } catch (error) {
             message.reply({
-                content: t("commands.send.error", String(error).slice(0, 1000))
+                content: t("commands.send.error", { error: String(error).slice(0, 1000) })
             });
         }
     }

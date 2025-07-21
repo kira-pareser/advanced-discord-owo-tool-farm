@@ -1,8 +1,9 @@
 import { Schematic } from "@/structure/Schematic.js";
+import { ranInt } from "@/utils/math.js";
 
 export default Schematic.registerFeature({
     name: "autoBattle",
-    cooldown: () => 15 * 1000,
+    cooldown: () => ranInt(15_000, 22_000),
     condition: () => true,
     run: async ({ agent }) => {
         await agent.awaitResponse({

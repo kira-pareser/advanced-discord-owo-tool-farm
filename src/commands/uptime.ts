@@ -10,7 +10,7 @@ export default Schematic.registerCommand({
         const uptime = formatTime(agent.client.readyTimestamp, Date.now());
 
         message.reply({
-            content: t("commands.uptime.response", uptime)
+            content: t("commands.uptime.response", { uptime })
         });
     }
 })

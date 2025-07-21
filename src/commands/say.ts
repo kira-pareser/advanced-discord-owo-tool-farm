@@ -26,7 +26,7 @@ export default Schematic.registerCommand({
                 const channel = message.guild?.channels.cache.get(channelId);
                 if (channel && channel.isText()) {
                     if (!channel.permissionsFor(agent.client.user!)?.has("SEND_MESSAGES")) {
-                        return message.reply(t("commands.errors.noPermission"));
+                        return message.reply(t("commands.common.errors.noPermission"));
                     }
 
                     targetChannel = channel;
@@ -44,7 +44,7 @@ export default Schematic.registerCommand({
 
         if (!targetChannel) {
             return message.reply({
-                content: t("commands.errors.invalidChannel")
+                content: t("commands.common.errors.invalidChannel")
             });
         }
 

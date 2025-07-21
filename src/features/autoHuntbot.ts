@@ -81,14 +81,19 @@ const upgradeTrait = async ({ agent, t }: FeatureFnParams, trait: Trait, fields:
 
     const essenceMatch = traitField.value.match(/\[(\d+)\/(\d+)]/);
     if (!essenceMatch) {
-        logger.debug(t("features.autoTrait.errors.noEssenceMatch", trait));
+        logger.debug(`Failed to parse essence for trait ${trait}`);
         return;
     }
 
     const currentEssence = parseInt(essenceMatch[1] || "0");
     const requiredEssence = parseInt(essenceMatch[2] || "0");
     const missingEssence = requiredEssence - currentEssence;
-    logger.data(t("features.autoTrait.essenceStatus", trait, currentEssence, requiredEssence, missingEssence));
+    logger.data(t("features.autoTrait.essenceStatus", {
+        trait,
+        current: currentEssence,
+        required: requiredEssence,
+        available: missingEssence
+    }));
 
     if (missingEssence > essence) {
         logger.info(t("features.autoTrait.errors.notEnoughEssence"));
@@ -103,7 +108,7 @@ export default Schematic.registerFeature({
     options: {
         overrideCooldown: true,
     },
-    cooldown: () => 10 * 60 * 1000, // 10 minutes
+    cooldown: () => ranInt(10 * 60 * 1000, 15 * 60 * 1000), // 10 to 15 minutes
     condition: ({ agent }) => {
         return agent.config.autoHuntbot;
     },
@@ -130,9 +135,9 @@ export default Schematic.registerFeature({
             const statsMatch = huntbotMsg.content.match(statsRegex);
 
             logger.info(t("features.autoHuntbot.stats.huntbot"));
-            logger.data(t("features.autoHuntbot.stats.animals", statsMatch?.[1] || "unknown"));
-            logger.data(t("features.autoHuntbot.stats.essence", statsMatch?.[2] || "unknown"));
-            logger.data(t("features.autoHuntbot.stats.exp", statsMatch?.[3] || "unknown"));
+            logger.data(t("features.autoHuntbot.stats.animals", { count: statsMatch?.[1] || "unknown" }));
+            logger.data(t("features.autoHuntbot.stats.essence", { amount: statsMatch?.[2] || "unknown" }));
+            logger.data(t("features.autoHuntbot.stats.exp", { amount: statsMatch?.[3] || "unknown" }));
 
             return 30_000; // Retry in 30 seconds if no embed found
         }
@@ -220,7 +225,7 @@ export default Schematic.registerFeature({
         const hours = parseInt(matchTime?.[2] || "0");
         const minutes = parseInt(matchTime?.[3] || "10");
 
-        logger.info(t("features.autoHuntbot.huntbotSent", hours, minutes));
+        logger.info(t("features.autoHuntbot.huntbotSent", { hours, minutes }));
 
         return hours * 60 * 60 * 1000
             + minutes * 60 * 1000

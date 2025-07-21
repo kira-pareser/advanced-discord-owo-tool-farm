@@ -6,7 +6,6 @@ import { CallNotifier } from "./notifiers/CallNotifier.js";
 import { SoundNotifier } from "./notifiers/SoundNotifier.js";
 import { PopupNotifier } from "./notifiers/PopupNotifier.js";
 import { formatTime } from "@/utils/time.js";
-import { t } from "@/utils/locales.js";
 
 export class NotificationService {
     private strategies: Map<string, NotifierStrategy>;
@@ -43,11 +42,11 @@ export class NotificationService {
         await Promise.all(notificationPromises);
     }
 
-    public static consoleNotify({ agent }: BaseParams): void {
-        logger.data(t("status.total.texts", agent.totalTexts));
-        logger.data(t("status.total.commands", agent.totalCommands));
-        logger.data(t("status.total.captchaSolved", agent.totalCaptchaSolved));
-        logger.data(t("status.total.captchaFailed", agent.totalCaptchaFailed));
-        logger.data(t("status.total.uptime", formatTime(agent.client.readyTimestamp, Date.now())));
+    public static consoleNotify({ agent, t }: FeatureFnParams): void {
+        logger.data(t("status.total.texts", { count: agent.totalTexts }));
+        logger.data(t("status.total.commands", { count: agent.totalCommands }));
+        logger.data(t("status.total.captchaSolved", { count: agent.totalCaptchaSolved }));
+        logger.data(t("status.total.captchaFailed", { count: agent.totalCaptchaFailed }));
+        logger.data(t("status.total.uptime", { duration: formatTime(agent.client.readyTimestamp, Date.now()) }));
     }
 }

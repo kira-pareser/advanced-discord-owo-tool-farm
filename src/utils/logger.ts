@@ -4,6 +4,7 @@ import chalk from "chalk"
 import fs from "node:fs"
 import path from "node:path"
 import util from "node:util"
+import { t } from "./locales.js"
 
 export type LogLevel = "alert" | "error" | "runtime" | "warn" | "info" | "data" | "sent" | "debug";
 
@@ -16,19 +17,23 @@ if (!fs.existsSync(LOG_DIR)) {
 
 const { combine, printf, timestamp, errors, uncolorize } = winston.format;
 
-const levelFormats: Record<LogLevel, string> = {
-    alert: chalk.redBright.bold("[ALERT]"),
-    error: chalk.redBright.bold("[ERROR]"),
-    runtime: chalk.blue.bold("[RUNTIME]"),
-    warn: chalk.yellowBright.bold("[WARNING]"),
-    info: chalk.cyanBright.bold("[INFO]"),
-    data: chalk.blackBright.bold("[DATA]"),
-    sent: chalk.greenBright.bold("[SENT]"),
-    debug: chalk.magentaBright.bold("[DEBUG]"),
+const getLevelFormat = (level: LogLevel): string => {
+    const translatedLevel = t(`system.logger.levels.${level}` as any);
+    const levelFormats: Record<LogLevel, (text: string) => string> = {
+        alert: (text) => chalk.redBright.bold(`[${text}]`),
+        error: (text) => chalk.redBright.bold(`[${text}]`),
+        runtime: (text) => chalk.blue.bold(`[${text}]`),
+        warn: (text) => chalk.yellowBright.bold(`[${text}]`),
+        info: (text) => chalk.cyanBright.bold(`[${text}]`),
+        data: (text) => chalk.blackBright.bold(`[${text}]`),
+        sent: (text) => chalk.greenBright.bold(`[${text}]`),
+        debug: (text) => chalk.magentaBright.bold(`[${text}]`),
+    }
+    return levelFormats[level]?.(translatedLevel) || chalk.whiteBright.bold(`[${translatedLevel.toUpperCase()}]`);
 }
 
 const consoleFormat = printf(({ level, message, timestamp, stack }) => {
-    const formattedLevel = levelFormats[level as LogLevel] || chalk.whiteBright.bold(`[${level.toUpperCase()}]`);
+    const formattedLevel = getLevelFormat(level as LogLevel);
     const formattedTimestamp = chalk.bgYellow.whiteBright(timestamp);
 
     if (stack) {

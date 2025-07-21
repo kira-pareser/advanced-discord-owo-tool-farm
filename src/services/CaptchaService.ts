@@ -51,18 +51,15 @@ export class CaptchaService {
 
     private axiosInstance = wrapper(axios.create({
         jar: new CookieJar(),
+        timeout: 30000,
         headers: {
-            "Accept": "application/json, text/plain, */*",
             "Accept-Encoding": "gzip, deflate, br",
             "Accept-Language": "en-US,en;q=0.9",
-            "Priority": "u=1, i",
-            "Sec-Ch-Ua": `"Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"`,
+            "Cache-Control": "no-cache",
+            "Sec-Ch-Ua": `"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"`,
             "Sec-Ch-Ua-Mobile": "?0",
             "Sec-Ch-Ua-Platform": `"${getPlatformForHeader()}"`,
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         }
     }))
 
@@ -97,28 +94,60 @@ export class CaptchaService {
             throw new Error("Captcha solver is not configured.");
         }
 
-        await this.axiosInstance.get(location, {
+        logger.debug(`Starting hCaptcha solving process for: ${location}`);
+
+        // Step 1: Follow the OAuth redirect chain (this establishes the session)
+        logger.debug("Step 1: Following OAuth redirect chain...");
+        const oauthResponse = await this.axiosInstance.get(location, {
             headers: {
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                "Priority": "u=0, i",
                 "Referer": "https://discord.com/",
-                "Content-Type": "application/json",
                 "Sec-Fetch-Dest": "document",
                 "Sec-Fetch-Mode": "navigate",
                 "Sec-Fetch-Site": "cross-site",
                 "Sec-Fetch-User": "?1",
                 "Upgrade-Insecure-Requests": "1",
-            }
+                "Priority": "u=0, i"
+            },
+            maxRedirects: 10,
+            validateStatus: (status) => status < 400 // Accept redirects
         });
+        logger.debug(`OAuth response status: ${oauthResponse.status}`);
 
+        // Step 2: Visit the captcha page explicitly
+        logger.debug("Step 2: Visiting captcha page...");
+        try {
+            await this.axiosInstance.get("https://owobot.com/captcha", {
+                headers: {
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+                    "Referer": "https://owobot.com/",
+                    "Sec-Fetch-Dest": "document",
+                    "Sec-Fetch-Mode": "navigate",
+                    "Sec-Fetch-Site": "same-origin",
+                    "Sec-Fetch-User": "?1",
+                    "Upgrade-Insecure-Requests": "1",
+                    "Priority": "u=0, i"
+                }
+            });
+        } catch (error) {
+            logger.warn(`Captcha page visit failed: ${error}`);
+        }
+
+        // Step 3: Check authentication status
+        logger.debug("Step 3: Checking authentication status...");
         const accountResponse = await this.axiosInstance.get("https://owobot.com/api/auth", {
             headers: {
+                "Accept": "application/json, text/plain, */*",
                 "Origin": "https://owobot.com",
-                "Referer": "https://owobot.com/",
+                "Referer": "https://owobot.com/captcha",
+                "Sec-Fetch-Dest": "empty",
+                "Sec-Fetch-Mode": "cors",
+                "Sec-Fetch-Site": "same-origin",
+                "Priority": "u=1, i"
             }
         });
 
-        logger.debug(accountResponse.data);
+        logger.debug(`Auth response data: ${JSON.stringify(accountResponse.data, null, 2)}`);
 
         if (accountResponse.data?.banned) {
             throw new Error("Account is banned.");
@@ -128,23 +157,35 @@ export class CaptchaService {
             throw new Error("Captcha is not active.");
         }
 
-        logger.debug(`Solving hCaptcha with sitekey: ${sitekey} and siteurl: ${siteurl}`);
+        // Step 4: Solve the hCaptcha
+        logger.debug(`Step 4: Solving hCaptcha with sitekey: ${sitekey} and siteurl: ${siteurl}`);
         const solution = await this.solver.solveHcaptcha(sitekey, siteurl);
-        logger.debug(`hCaptcha response token: ${solution.slice(0, 20)}...`);
+        logger.debug(`hCaptcha response token: ${solution.slice(0, 50)}...`);
 
+        // Step 5: Submit the verification (matching your successful browser request exactly)
+        logger.debug("Step 5: Submitting captcha verification...");
         const verificationResponse = await this.axiosInstance.post("https://owobot.com/api/captcha/verify", {
-            code: solution,
+            token: solution // Using "code" as per your successful browser request
         }, {
             headers: {
+                "Accept": "application/json, text/plain, */*",
+                "Content-Type": "application/json",
                 "Origin": "https://owobot.com",
                 "Referer": "https://owobot.com/captcha",
-                "Content-Type": "application/json",
+                "Sec-Fetch-Dest": "empty",
+                "Sec-Fetch-Mode": "cors",
+                "Sec-Fetch-Site": "same-origin",
+                "Priority": "u=1, i"
             }
         });
 
         if (verificationResponse.status !== 200) {
-            throw new Error(`Failed to verify captcha: ${verificationResponse.statusText}`);
+            const errorData = verificationResponse.data;
+            logger.error(`Verification response: ${JSON.stringify(errorData, null, 2)}`);
+            throw new Error(`Failed to verify captcha: ${verificationResponse.status} - ${verificationResponse.statusText} - ${JSON.stringify(errorData)}`);
         }
+
+        logger.info("✅ hCaptcha verification successful!");
     }
 
     public static async handleCaptcha(params: BaseParams, message: Message, retries: number = 0): Promise<void> {

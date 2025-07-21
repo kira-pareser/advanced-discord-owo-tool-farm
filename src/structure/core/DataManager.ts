@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 
 import { logger } from "@/utils/logger.js";
+import { t } from "@/utils/locales.js";
 
 /**
  * Manages reading and writing JSON data to a file on disk.
@@ -45,7 +46,7 @@ export class DataManager {
         }
     }
 
-    public read = ():Record<string, unknown> => {
+    public read = (): Record<string, unknown> => {
         try {
             const data = fs.readFileSync(this.filePath, "utf-8");
             return JSON.parse(data);
@@ -59,7 +60,7 @@ export class DataManager {
     public write = (data: Record<string, unknown>): void => {
         try {
             fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2));
-            logger.info(`File saved to: ${this.filePath}`);
+            logger.info(t("system.messages.fileSaved", { filePath: this.filePath }));
         } catch (error) {
             logger.error("Error writing data file:");
             logger.error(error as Error);

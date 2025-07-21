@@ -9,6 +9,7 @@ import { execSync, exec, spawn } from "node:child_process";
 
 import packageJSON from "#/package.json" with { type: "json" };
 import { logger } from "@/utils/logger.js";
+import { t } from "@/utils/locales.js";
 import { copyDirectory } from "../utils/path.js";
 import { downloadAndExtractRepo } from "@/utils/download.js";
 
@@ -18,7 +19,7 @@ export class UpdateFeature {
     };
 
     public checkForUpdates = async () => {
-        logger.info("Checking for updates...");
+        logger.info(t("system.update.checkingForUpdates"));
         try {
             const { version: currentVersion } = packageJSON;
             const { data: { version: latestVersion } } = await axios.get(
@@ -29,11 +30,11 @@ export class UpdateFeature {
             );
 
             if (currentVersion < latestVersion) {
-                logger.info(`New version available: ${latestVersion}. Current version: ${currentVersion}.`);
+                logger.info(t("system.update.newVersionAvailable", { latestVersion, currentVersion }));
                 return true;
             }
 
-            logger.info(`You are using the latest version: ${currentVersion}.`);
+            logger.info(t("system.update.latestVersion", { currentVersion }));
         } catch (error) {
             logger.error(`Failed to check for updates:` + error);
         }
@@ -69,13 +70,12 @@ export class UpdateFeature {
     }
 
     private installDependencies = async () => {
-        logger.info("Installing dependencies...");
+        logger.info(t("system.update.installingDependencies"));
         try {
-            await promisify(exec)("npm ci");
-            logger.info("Dependencies installed successfully.");
+            execSync("npm install", { stdio: "inherit" });
+            logger.info(t("system.update.dependenciesInstalled"));
         } catch (error) {
-            logger.error("Error installing dependencies:");
-            logger.error(String(error));
+            logger.error("Failed to install dependencies:" + error);
         }
     }
 
@@ -97,20 +97,22 @@ export class UpdateFeature {
     }
 
     public performUpdate = async () => {
-        logger.info("Performing update...");
-        if (fs.existsSync(".git")) {
-            try {
-                execSync("git --version");
-                logger.info("Git detected, updating with Git!");
-                this.gitUpdate();
-            } catch (error) {
-                logger.info("Git not found, updating manually...");
+        logger.info(t("system.update.performingUpdate"));
+        try {
+            if (fs.existsSync(".git")) {
+                logger.info(t("system.update.gitDetected"));
+                await this.gitUpdate();
+            } else {
+                logger.info(t("system.update.gitNotFound"));
                 await this.manualUpdate();
             }
-        } else {
-            await this.manualUpdate();
-        }
 
-        logger.info("Update completed successfully!");
+            await this.installDependencies();
+            logger.info(t("system.update.updateCompleted"));
+
+            process.exit(0);
+        } catch (error) {
+            logger.error("Failed to perform update:" + error);
+        }
     }
 }

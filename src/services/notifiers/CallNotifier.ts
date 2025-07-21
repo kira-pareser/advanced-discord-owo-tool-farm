@@ -33,7 +33,7 @@ export class CallNotifier implements NotifierStrategy {
                 logger.debug("Disconnected from voice channel after 60 seconds.");
             }, 60_000);
         } catch (error) {
-            logger.error(t("notifier.error.execution", { notifier: "CallNotifier", error: error instanceof Error ? error.message : String(error) }));
+            logger.error(`Error in CallNotifier: ${error instanceof Error ? error.message : String(error)}`);
             logger.error(error instanceof Error ? error.stack || "No stack trace available" : "Unknown error occurred during Call Notifier execution.");
             return Promise.reject(error);
         }

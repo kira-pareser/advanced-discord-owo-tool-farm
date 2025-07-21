@@ -7,6 +7,7 @@ import { confirm } from "@inquirer/prompts";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import packageJSON from "./package.json" with { type: "json" };
+import { Locale } from "@/utils/locales.js";
 
 process.title = `Advanced Discord OwO Tool Farm v${packageJSON.version} - Copyright 2025 © Elysia x Kyou Izumi`;
 console.clear();
@@ -36,7 +37,7 @@ const argv = await yargs(hideBin(process.argv))
         alias: "l",
         type: "string",
         description: "Set the language for the application",
-        choices: ["en"],
+        choices: ["en", "tr", "vi"],
         default: "en",
     })
     .help()
@@ -44,6 +45,7 @@ const argv = await yargs(hideBin(process.argv))
     .parse();
 
 logger.setLevel(argv.verbose || process.env.NODE_ENV === "development" ? "debug" : "sent");
+process.env.LOCALE = argv.language as Locale || "en";
 
 if (!argv._.length) {
     if (!argv.skipCheckUpdate) {

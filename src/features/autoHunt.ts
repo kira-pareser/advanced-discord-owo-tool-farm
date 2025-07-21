@@ -18,8 +18,8 @@ const GEM_TIERS = {
     uncommon: [52, 66, 73, 80],
     rare: [53, 67, 74, 81],
     epic: [54, 68, 75, 82],
-    legendary: [55, 69, 76, 83],
-    mythical: [56, 70, 77, 84],
+    mythical: [55, 69, 76, 83],
+    legendary: [56, 70, 77, 84],
     fabled: [57, 71, 78, 85],
 }
 
@@ -77,7 +77,7 @@ const useGems = async (params: FeatureFnParams, huntMsg: Message) => {
         return;
     }
 
-    logger.info(t("features.autoHunt.gemsFound", totalGems));
+    logger.info(t("features.autoHunt.gemsFound", { count: totalGems }));
 
     const gemsToUse: number[] = []
 
@@ -104,7 +104,7 @@ const useGems = async (params: FeatureFnParams, huntMsg: Message) => {
 
 export default Schematic.registerFeature({
     name: "autoHunt",
-    cooldown: () => 15_000,
+    cooldown: () => ranInt(15_000, 22_000),
     condition: async () => true,
     run: async ({ agent, t, locale }) => {
 

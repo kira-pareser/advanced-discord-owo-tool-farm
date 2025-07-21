@@ -15,7 +15,7 @@ import {
 
 import { Configuration } from "@/schemas/ConfigSchema.js";
 import featuresHandler from "@/handlers/featuresHandler.js";
-import { t, locale } from "@/utils/locales.js";
+import { t, getCurrentLocale } from "@/utils/locales.js";
 import { shuffleArray } from "@/utils/array.js";
 import commandsHandler from "@/handlers/commandsHandler.js";
 import eventsHandler from "@/handlers/eventsHandler.js";
@@ -58,12 +58,12 @@ export class BaseAgent {
     starCache?: number[];
 
     public channelChangeThreshold = ranInt(17, 56);
-    public autoSleepThreshold = ranInt(82, 400);
+    public autoSleepThreshold = ranInt(32, 600);
     public lastSleepAt = 0;
 
     public captchaDetected = false;
-    private farmLoopRunning = false;
-    private farmLoopPaused = false;
+    public farmLoopRunning = false;
+    public farmLoopPaused = false;
     private expectResponseOnAllAwaits = false;
 
     constructor(client: ExtendedClient<true>, config: Configuration) {
@@ -102,13 +102,13 @@ export class BaseAgent {
             const channel = this.client.channels.cache.get(channelID);
             if (channel && channel.isText()) {
                 this.activeChannel = channel as GuildTextBasedChannel;
-                logger.info(`Active channel set to: #${this.activeChannel.name}`);
+                logger.info(t("agent.messages.activeChannelSet", { channelName: this.activeChannel.name }));
 
                 return this.activeChannel;
             } else {
-                logger.warn(`Channel with ID ${channelID} is not a text channel or does not exist.`);
+                logger.warn(t("agent.messages.invalidChannel", { channelID }));
                 this.config.channelID = this.config.channelID.filter(id => id !== channelID);
-                logger.info(`Removed invalid channel ID ${channelID} from configuration.`);
+                logger.info(t("agent.messages.removedInvalidChannel", { channelID }));
             }
         } catch (error) {
             logger.error(`Failed to fetch channel with ID ${channelID}:`);
@@ -121,7 +121,7 @@ export class BaseAgent {
         for (const key of Object.keys(this.cache)) {
             (this.config as any)[key as keyof Configuration] = this.cache[key as keyof Configuration];
         }
-        logger.info("Configuration reloaded from cache.");
+        logger.info(t("agent.messages.configReloaded"));
     }
 
     public send = async (content: string, options: SendMessageOptions = {
@@ -129,7 +129,7 @@ export class BaseAgent {
         prefix: this.prefix,
     }) => {
         if (!this.activeChannel) {
-            logger.warn("Cannot send command: No active channel is set.");
+            logger.warn(t("agent.messages.noActiveChannel"));
             return;
         }
 
@@ -143,7 +143,7 @@ export class BaseAgent {
             const owo = await this.activeChannel.guild.members.fetch(this.owoID);
             return !!owo && owo.presence?.status !== "offline";
         } catch (error) {
-            logger.warn("Failed to check OwO status, assuming bot is offline or not in the guild.");
+            logger.warn(t("agent.messages.owoStatusCheckFailed"));
             return false;
         }
     }
@@ -269,24 +269,6 @@ export class BaseAgent {
         this.client.user.setPresence({ activities: [rpc] });
     }
 
-    public pauseFarmLoop = () => {
-        this.farmLoopPaused = true;
-        logger.info("Farm loop has been paused.");
-    }
-
-    public resumeFarmLoop = () => {
-        this.farmLoopPaused = false;
-        logger.info("Farm loop has been resumed.");
-
-        if (!this.farmLoopRunning) {
-            this.farmLoop();
-        }
-    }
-
-    public isFarmLoopPaused = (): boolean => {
-        return this.farmLoopPaused;
-    }
-
     public farmLoop = async () => {
         if (this.farmLoopRunning) {
             logger.debug("Double farm loop detected, skipping this iteration.");
@@ -303,7 +285,7 @@ export class BaseAgent {
         try {
             const featureKeys = Array.from(this.features.keys());
             if (featureKeys.length === 0) {
-                logger.warn("No features available to run. Please ensure features are loaded correctly.");
+                logger.warn(t("agent.messages.noFeaturesAvailable"));
                 return;
             }
 
@@ -315,7 +297,7 @@ export class BaseAgent {
 
                 const botStatus = await this.isBotOnline();
                 if (!botStatus) {
-                    logger.warn("OwO bot offline status detected, expecting response on all awaits.");
+                    logger.warn(t("agent.messages.owoOfflineDetected"));
                     this.expectResponseOnAllAwaits = true;
                 } else {
                     this.expectResponseOnAllAwaits = false;
@@ -323,21 +305,22 @@ export class BaseAgent {
 
                 const feature = this.features.get(featureKey);
                 if (!feature) {
-                    logger.warn(`Feature ${featureKey} not found in features collection.`);
+                    logger.warn(t("agent.messages.featureNotFound", { featureKey }));
                     continue;
                 }
 
                 try {
-                    const shouldRun = await feature.condition({ agent: this, t, locale })
+                    const shouldRun = await feature.condition({ agent: this, t, locale: getCurrentLocale() })
                         && this.cooldownManager.onCooldown("feature", feature.name) === 0;
                     if (!shouldRun) continue;
 
-                    const res = await feature.run({ agent: this, t, locale });
+                    const res = await feature.run({ agent: this, t, locale: getCurrentLocale() });
                     this.cooldownManager.set(
                         "feature", feature.name,
                         typeof res === "number" && !isNaN(res) ? res : feature.cooldown() || 30_000
                     );
-                    await this.client.sleep(ranInt(500, 1600));
+
+                    await this.client.sleep(ranInt(500, 4600));
                 } catch (error) {
                     logger.error(`Error running feature ${feature.name}:`);
                     logger.error(error as Error);
@@ -347,7 +330,7 @@ export class BaseAgent {
             if (!this.captchaDetected && !this.farmLoopPaused) {
                 setTimeout(() => {
                     this.farmLoop();
-                }, ranInt(1000, 5000));
+                }, ranInt(1000, 7500));
             }
 
         } catch (error) {
@@ -362,30 +345,30 @@ export class BaseAgent {
         CriticalEventHandler.handleRejection({
             agent: this,
             t,
-            locale,
+            locale: getCurrentLocale(),
         })
 
         await featuresHandler.run({
             agent: this,
             t,
-            locale,
+            locale: getCurrentLocale(),
         });
-        logger.info(`Registered ${this.features.size} features.`);
+        logger.info(t("agent.messages.featuresRegistered", { count: this.features.size }));
 
         await commandsHandler.run({
             agent: this,
             t,
-            locale,
+            locale: getCurrentLocale(),
         });
-        logger.info(`Registered ${this.commands.size} commands.`);
+        logger.info(t("agent.messages.commandsRegistered", { count: this.commands.size }));
 
         await eventsHandler.run({
             agent: this,
             t,
-            locale,
+            locale: getCurrentLocale(),
         });
 
-        if(this.config.showRPC) this.loadPresence();
+        if (this.config.showRPC) this.loadPresence();
     }
 
     public static initialize = async (client: ExtendedClient<true>, config: Configuration) => {
@@ -399,7 +382,7 @@ export class BaseAgent {
 
         await agent.registerEvents();
         logger.debug("BaseAgent initialized successfully.");
-        logger.info(`Logged in as: ${client.user.username}`);
+        logger.info(t("agent.messages.loggedIn", { username: client.user.username }));
 
         agent.farmLoop();
     }

@@ -35,14 +35,15 @@ export class CriticalEventHandler {
     }
 
     public static handleBan({ t }: FeatureFnParams) {
-        logger.alert(`${t("status.banned")}, ${t("status.stop")}`);
+        logger.alert(`${t("status.states.banned")}, ${t("status.states.stop")}`);
         // consoleNotify(...)
         process.exit(-1);
     }
 
-    public static async handleNoMoney({ agent, t, locale }: FeatureFnParams) {
+    public static async handleNoMoney(params: FeatureFnParams) {
+        const { agent, t } = params;
         if (agent.config.autoSell) {
-            logger.warn("Cowoncy ran out! Attempting to sell all items.");
+            logger.warn(t("handlers.criticalEvent.noMoney.attemptingSell"));
 
             const sellResponse = await agent.awaitResponse({
                 trigger: () => agent.send("sell all"),
@@ -58,13 +59,13 @@ export class CriticalEventHandler {
             if (/sold.*for a total of/.test(sellResponse.content)) {
                 logger.data(sellResponse.content.replace(/<a?:(\w+):\d+>/g, '$1').replace("**", "")); // Replace emojis with their names
             } else {
-                logger.warn("No sellable items found. Stopping selfbot.");
-                // consoleNotify(...)
+                logger.warn(t("handlers.criticalEvent.noMoney.noItems"));
+                NotificationService.consoleNotify(params);
                 process.exit(-1);
             }
         } else {
-            logger.warn("Cowoncy ran out and autoSell is disabled. Stopping selfbot.");
-            // consoleNotify(...)
+            logger.warn(t("handlers.criticalEvent.noMoney.autoSellDisabled"));
+            NotificationService.consoleNotify(params);
             process.exit(-1);
         }
     }
