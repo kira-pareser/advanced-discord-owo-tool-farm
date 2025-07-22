@@ -28,7 +28,7 @@ export default Schematic.registerFeature({
 
         logger.info(t("features.autoSleep.nextSleep", {
             commands: nextThreshold,
-            sleepTime: formatTime(0, mapInt(
+            duration: formatTime(0, mapInt(
                 nextThreshold,
                 52, 600, // Map the range of commands to the sleep time
                 5 * 60 * 1000, 40 * 60 * 1000
