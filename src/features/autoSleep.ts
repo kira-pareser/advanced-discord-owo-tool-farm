@@ -10,15 +10,15 @@ export default Schematic.registerFeature({
     condition: async ({ agent }) => {
         if (!agent.config.autoSleep) return false;
 
-        return agent.config.autoSleep && agent.totalCommands - agent.lastSleepAt >= agent.autoSleepThreshold;
+        return agent.config.autoSleep && (agent.totalCommands + agent.totalTexts) - agent.lastSleepAt >= agent.autoSleepThreshold;
     },
     run: ({ agent, t }) => {
-        const commandsSinceLastSleep = agent.totalCommands - agent.lastSleepAt;
+        const commandsSinceLastSleep = (agent.totalCommands + agent.totalTexts) - agent.lastSleepAt;
         let sleepTime = mapInt(commandsSinceLastSleep, 32, 600, 5 * 60 * 1000, 45 * 60 * 1000);
         sleepTime = ranInt(sleepTime * 0.65, sleepTime * 1.35); // Add some randomness to the sleep time
 
         const nextThreshold = ranInt(32, 600);
-        agent.lastSleepAt = agent.totalCommands; // Update the last sleep time to the current command count
+        agent.lastSleepAt = (agent.totalCommands + agent.totalTexts); // Update the last sleep time to the current command count
         agent.autoSleepThreshold = nextThreshold; // Add a random padding to the threshold for the next sleep
 
         logger.info(t("features.autoSleep.sleeping", {
