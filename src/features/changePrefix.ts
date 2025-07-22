@@ -20,9 +20,7 @@ export default Schematic.registerFeature({
             expectResponse: true,
         });
 
-        if (!response) return;
-
-        const newPrefix = response.content.match(/the current prefix is set to\s*\*\*`([^`]+)`\*\*/i)?.[1];
+        const newPrefix = response?.content.match(/the current prefix is set to\s*\*\*`([^`]+)`\*\*/i)?.[1];
         if (!newPrefix) {
             agent.config.useCustomPrefix = false;
             logger.warn(t("features.changePrefix.noPrefixFound"));
