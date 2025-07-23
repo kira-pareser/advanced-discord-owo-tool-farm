@@ -31,7 +31,7 @@ const solvePassword = async (attachmentUrl: string, options: SolvePasswordOption
             logger.warn(t("features.autoHuntbot.errors.invalidCaptchaResult", { result }));
             return undefined;
         }
-        logger.data(t("captcha.solutionFound", { result }));
+        logger.data(t("captcha.solutionFound", { solution: result }));
         return result;
     }
 
@@ -53,7 +53,7 @@ const solvePassword = async (attachmentUrl: string, options: SolvePasswordOption
             avgConfidence: string;
         };
 
-        logger.data(t("captcha.solutionFound", { result: res.result, avgConfidence: res.avgConfidence }));
+        logger.data(t("captcha.solutionFound", { solution: res.result, avgConfidence: res.avgConfidence }));
         return res.result;
     } catch (error) {
         logger.error("Failed to parse captcha response:");
