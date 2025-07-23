@@ -107,12 +107,6 @@ export default Schematic.registerFeature({
     cooldown: () => ranInt(15_000, 22_000),
     condition: async () => true,
     run: async ({ agent, t, locale }) => {
-
-        if (agent.config.autoGem === 0) {
-            await agent.send("hunt");
-            return;
-        }
-
         const huntMsg = await agent.awaitResponse({
             trigger: () => agent.send("hunt"),
             filter: (m) => m.author.id === agent.owoID
@@ -121,14 +115,12 @@ export default Schematic.registerFeature({
             expectResponse: true,
         });
 
-        if (!huntMsg) return;
+        if (!huntMsg || !agent.config.autoGem) return;
 
         const gem1Needed = !huntMsg.content.includes("gem1") && (!agent.gem1Cache || agent.gem1Cache.length > 0);
         const gem2Needed = !huntMsg.content.includes("gem3") && (!agent.gem2Cache || agent.gem2Cache.length > 0);
         const gem3Needed = !huntMsg.content.includes("gem4") && (!agent.gem3Cache || agent.gem3Cache.length > 0);
         const starNeeded = Boolean(agent.config.useSpecialGem && !huntMsg.content.includes("star") && (!agent.starCache || agent.starCache.length > 0));
-
-        // const condition = agent.config.
 
         if (gem1Needed || gem2Needed || gem3Needed || starNeeded) await useGems({ agent, t, locale }, huntMsg);
     }

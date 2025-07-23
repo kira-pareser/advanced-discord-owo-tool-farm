@@ -14,7 +14,7 @@ export default Schematic.registerEvent({
 
         const normalizedContent = message.content.normalize("NFC").replace(NORMALIZE_REGEX, "");
 
-        const isForThisUser = message.channel.type === "DM" || 
+        const isForThisUser = message.channel.type === "DM" ||
             normalizedContent.includes(message.client.user?.id!) ||
             normalizedContent.includes(message.client.user?.username!) ||
             normalizedContent.includes(message.client.user?.displayName!) ||

@@ -21,12 +21,13 @@ export class CallNotifier implements NotifierStrategy {
             const admin = await agent.client.users.fetch(agent.config.adminID);
             const dms = await admin.createDM();
 
-            await dms.ring();
             const connection = await agent.client.voice.joinChannel(dms, {
                 selfDeaf: false,
                 selfMute: true,
                 selfVideo: false,
             })
+            logger.debug(`Joined voice channel with status: ${connection.status}`);
+            await dms.ring();
 
             setTimeout(() => {
                 connection.disconnect();
