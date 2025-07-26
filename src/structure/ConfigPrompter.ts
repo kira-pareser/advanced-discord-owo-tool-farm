@@ -155,7 +155,7 @@ export class ConfigPrompter extends BasePrompter {
 
         return this.ask(input, {
             message: t("ui.adminID.enterUserID", {
-                required: required === true ? t("ui.adminID.emptyToSkip") : ""
+                required: required !== true ? t("ui.adminID.emptyToSkip") : ""
             }),
             default: cache,
             validate: async (id) => {
