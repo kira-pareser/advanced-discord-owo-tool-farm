@@ -7,6 +7,8 @@ export default Schematic.registerEvent({
     handler: async ({ agent }, message) => {
         if (!agent.captchaDetected || message.channel.type !== "DM") return;
         if (!agent.config.adminID || message.author.id !== agent.config.adminID) return;
+        if (message.channel.recipient.id !== message.client.user?.id) return;
+
         if (/^\w{3,6}$/.test(message.content)) {
             const owo = await message.client.users.fetch(agent.owoID).catch(() => null);
             const dms = await owo?.createDM();
