@@ -1,6 +1,6 @@
 {
   "name": "advanced-discord-owo-tool-farm",
-  "version": "4.0.0-alpha-2.5",
+  "version": "4.0.0-alpha-2.6",
   "description": "Community Discord OwO Selfbot made in Vietnam [Copyright © Kyou-Izumi 2025]",
   "main": "index.ts",
   "type": "module",
@@ -11,7 +11,7 @@
     "prepare": "tsc && tsc-alias",
     "build": "tsc && tsc-alias",
     "setup": "npm install",
-    "start": "cross-env NODE_ENV=production npx tsx index.ts",
+    "start": "npx tsx index.ts",
     "start:js": "node dest/index.js",
     "dev": "cross-env NODE_ENV=development npx tsx ."
   },

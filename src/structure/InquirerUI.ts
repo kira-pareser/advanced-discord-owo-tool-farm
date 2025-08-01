@@ -137,7 +137,7 @@ export class InquirerUI {
                 this.config.token = token;
             default:
                 const existingConfig = this.configManager.get(accountSelection);
-                if (existingConfig) this.config = existingConfig;
+                if (existingConfig) this.config = { ...existingConfig, ...this.config };
         }
 
         try {
