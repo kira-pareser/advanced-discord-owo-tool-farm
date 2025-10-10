@@ -25,6 +25,8 @@ For laptop and PC: Windows 10/11 or higher, Linux and MacOS
 
 For Android: Download and install [Termux](https://f-droid.org/en/packages/com.termux/) 
 
+MAKE SURE: Install both Termux & Termux:API from F-Droid to activate termux-notification feature
+
 For IOS: Not yet (please tell us if you know any supporting method)
 
 __Note:__ Termux from Google Play Store is unsupported.
@@ -47,13 +49,6 @@ Please make sure that you have installed [Node.js LTS](https://nodejs.org/en/dow
 
 ##### Termux:
 
-Download termux from link below if you want termux-notification feature:
-[termux-github](https://github.com/termux/termux-app?tab=readme-ov-file#installation)
-
-then run:
-```bash
-pkg install termux-api
-```
 
 On Termux, run the following commands:
 ```bash
