@@ -115,7 +115,7 @@ export default Schematic.registerFeature({
     run: async (options) => {
         const { agent, t } = options;
         const huntbotMsg = await agent.awaitResponse({
-            trigger: () => agent.send("huntbot"),
+            trigger: () => agent.send("hb"),
             filter: m => m.author.id === agent.owoID
                 && (
                     m.content.includes("BEEP BOOP. I AM BACK")
