@@ -47,6 +47,14 @@ Please make sure that you have installed [Node.js LTS](https://nodejs.org/en/dow
 
 ##### Termux:
 
+Download termux from link below if you want termux-notification feature:
+[termux-github](https://github.com/termux/termux-app?tab=readme-ov-file#installation)
+
+then run:
+```bash
+pkg install termux-api
+```
+
 On Termux, run the following commands:
 ```bash
 apt update
