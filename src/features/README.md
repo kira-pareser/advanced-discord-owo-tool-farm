@@ -60,7 +60,7 @@ export default Schematic.registerFeature({
     },
     run: async ({ agent, t, locale }) => {
         // Option 1: send a single buy command
-        await agent.send("owo buy ring");
+        await agent.send("owo dont buy ring");
         
         // Option 2: send and await for response
         const response = await agent.awaitResponse({

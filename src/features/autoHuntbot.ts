@@ -163,7 +163,7 @@ export default Schematic.registerFeature({
         if (agent.config.autoTrait) await upgradeTrait(options, agent.config.autoTrait, fields);
 
         const passwordMsg = await agent.awaitResponse({
-            trigger: () => agent.send("huntbot 24h"),
+            trigger: () => agent.send("hb 24h"),
             filter: m => m.author.id === agent.owoID
                 && m.content.includes(m.guild?.members.me?.displayName!)
                 && (
@@ -212,7 +212,7 @@ export default Schematic.registerFeature({
         if (!password) return;
 
         const resultMsg = await agent.awaitResponse({
-            trigger: () => agent.send(`huntbot 24h ${password}`),
+            trigger: () => agent.send(`hb 24h ${password}`),
             filter: m => m.author.id === agent.owoID
                 && m.content.includes(m.guild?.members.me?.displayName!)
                 && m.content.includes("BEEP BOOP.")

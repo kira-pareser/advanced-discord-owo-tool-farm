@@ -41,7 +41,7 @@ export default Schematic.registerCommand({
 
         try {
             const response = await agent.awaitResponse({
-                trigger: () => agent.send(`owo give ${user} ${amount}`),
+                trigger: () => agent.send(`ogive ${user} ${amount}`),
                 filter: msg => msg.author.id === agent.owoID
                     && msg.embeds.length > 0
                     && !!msg.embeds[0].author?.name.includes(msg.guild?.members.me?.displayName!)
