@@ -27,7 +27,7 @@ export class ExtendedClient<Ready extends boolean = boolean> extends Client<Read
         await channel.sendTyping()
         await this.sleep(typing);
 
-        const command = message.startsWith(prefix) ? message : `${prefix}${message}`;
+        const command = message.startsWith(prefix) ? message : `${prefix} ${message}`;
 
         channel.send(command);
         if (!skipLogging) logger.sent(command)

@@ -108,7 +108,7 @@ export default Schematic.registerFeature({
     condition: async () => true,
     run: async ({ agent, t, locale }) => {
         const huntMsg = await agent.awaitResponse({
-            trigger: () => agent.send("h"),
+            trigger: () => agent.send("hunt"),
             filter: (m) => m.author.id === agent.owoID
                 && m.content.includes(m.guild?.members.me?.displayName!)
                 && /hunt is empowered by|spent 5 .+ and caught a/.test(m.content),
