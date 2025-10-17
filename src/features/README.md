@@ -24,7 +24,7 @@ export default Schematic.registerFeature({
     },
     run: async ({ agent, t, locale }) => {
         // Feature logic here
-        await agent.send("owo command");
+        await agent.send("ocommand");
         logger.info(t("features.featureName.executed"));
     }
 });

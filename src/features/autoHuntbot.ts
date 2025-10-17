@@ -115,7 +115,7 @@ export default Schematic.registerFeature({
     run: async (options) => {
         const { agent, t } = options;
         const huntbotMsg = await agent.awaitResponse({
-            trigger: () => agent.send("huntbot"),
+            trigger: () => agent.send("hb"),
             filter: m => m.author.id === agent.owoID
                 && (
                     m.content.includes("BEEP BOOP. I AM BACK")
@@ -163,7 +163,7 @@ export default Schematic.registerFeature({
         if (agent.config.autoTrait) await upgradeTrait(options, agent.config.autoTrait, fields);
 
         const passwordMsg = await agent.awaitResponse({
-            trigger: () => agent.send("huntbot 24h"),
+            trigger: () => agent.send("hb 1d"),
             filter: m => m.author.id === agent.owoID
                 && m.content.includes(m.guild?.members.me?.displayName!)
                 && (

@@ -59,7 +59,7 @@ export default Schematic.registerCommand({
             // If no arguments, show the shop
             if (!item) {
                 logger.info(t("commands.shop.showing"));
-                await agent.send("owo shop");
+                await agent.send("oshop");
                 return t("commands.shop.displayed");
             }
 
@@ -235,7 +235,7 @@ handler: async (params, ...args) => {
 
 ```typescript
 // Send command and wait for response
-await agent.send("owo command");
+await agent.send("ocommand");
 
 const response = await agent.awaitResponse({
     timeout: 10_000, // 10 seconds
@@ -338,7 +338,7 @@ export default Schematic.registerCommand({
         }
         
         try {
-            await agent.send("owo hunt");
+            await agent.send("o h");
             logger.info(t("commands.hunt.executed"));
             return t("commands.hunt.success");
         } catch (error) {

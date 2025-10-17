@@ -46,7 +46,7 @@ export class CriticalEventHandler {
             logger.warn(t("handlers.criticalEvent.noMoney.attemptingSell"));
 
             const sellResponse = await agent.awaitResponse({
-                trigger: () => agent.send("sell all"),
+                trigger: () => agent.send("sc all"),
                 filter: (msg) => msg.author.id === agent.owoID && msg.content.includes(msg.guild?.members.me?.displayName!)
                     && (/sold.*for a total of/.test(msg.content) || msg.content.includes("You don't have enough animals!")),
             })
