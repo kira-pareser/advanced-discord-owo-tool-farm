@@ -4,7 +4,7 @@ import { quotes } from "@/utils/quotes.js";
 
 export default Schematic.registerFeature({
     name: "autoQuote",
-    cooldown: () => 15_000,
+    cooldown: () => 60_000,
     condition: async ({ agent }) => {
         return agent.config.autoQuote.length > 0;
     },
